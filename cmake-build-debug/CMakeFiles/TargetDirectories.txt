@@ -1,0 +1,3 @@
+/home/djh/master-code/adaptiveMRS/cmake-build-debug/CMakeFiles/adaptiveMRS.dir
+/home/djh/master-code/adaptiveMRS/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/djh/master-code/adaptiveMRS/cmake-build-debug/CMakeFiles/rebuild_cache.dir
