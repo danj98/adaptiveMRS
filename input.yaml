@@ -1,0 +1,26 @@
+# Description of the world
+world_information:
+  grid_size:
+    width: 10
+    height: 10
+  obstacles:
+    - [2, 3]
+    - [5, 7]
+
+robots:
+  - id: robot_1
+    type: wheeled
+    start_position: [0, 0]
+
+  - id: robot_2
+    type: wheeled
+    start_position: [9, 9]
+
+mission:
+  goal_position: [5, 7]
+
+tasks:
+  - task_id: task_1
+    task_type: reach_position
+    position: [7, 5]
+    allowed_robots: [robot_1, robot_2]
