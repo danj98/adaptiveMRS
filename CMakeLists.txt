@@ -3,7 +3,10 @@ project(adaptiveMRS)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(adaptiveMRS main.cpp)
+add_executable(adaptiveMRS main.cpp
+        robot.cpp
+        robot.h
+        point.h)
 
 find_package(yaml-cpp REQUIRED)
 

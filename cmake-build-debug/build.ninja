@@ -55,6 +55,12 @@ build CMakeFiles/adaptiveMRS.dir/main.cpp.o: CXX_COMPILER__adaptiveMRS_unscanned
   OBJECT_DIR = CMakeFiles/adaptiveMRS.dir
   OBJECT_FILE_DIR = CMakeFiles/adaptiveMRS.dir
 
+build CMakeFiles/adaptiveMRS.dir/robot.cpp.o: CXX_COMPILER__adaptiveMRS_unscanned_Debug /home/djh/master-code/adaptiveMRS/robot.cpp || cmake_object_order_depends_target_adaptiveMRS
+  DEP_FILE = CMakeFiles/adaptiveMRS.dir/robot.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/adaptiveMRS.dir
+  OBJECT_FILE_DIR = CMakeFiles/adaptiveMRS.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target adaptiveMRS
@@ -63,7 +69,7 @@ build CMakeFiles/adaptiveMRS.dir/main.cpp.o: CXX_COMPILER__adaptiveMRS_unscanned
 #############################################
 # Link the executable adaptiveMRS
 
-build adaptiveMRS: CXX_EXECUTABLE_LINKER__adaptiveMRS_Debug CMakeFiles/adaptiveMRS.dir/main.cpp.o
+build adaptiveMRS: CXX_EXECUTABLE_LINKER__adaptiveMRS_Debug CMakeFiles/adaptiveMRS.dir/main.cpp.o CMakeFiles/adaptiveMRS.dir/robot.cpp.o
   FLAGS = -g
   LINK_LIBRARIES = -lyaml-cpp
   OBJECT_DIR = CMakeFiles/adaptiveMRS.dir
