@@ -6,7 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(adaptiveMRS src/main.cpp
         src/robot.cpp
         src/robot.h
-        src/point.h)
+        src/point.h
+        src/Map.cpp
+        src/Map.h)
 
 find_package(yaml-cpp REQUIRED)
 

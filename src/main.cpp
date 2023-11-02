@@ -4,6 +4,7 @@
 #include <fstream>
 #include "point.h"
 #include "robot.h"
+#include "Map.h"
 
 
 // prints a grid based on width and height
@@ -71,7 +72,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Robot robot1 = Robot("robot1", 1, 100, Point(0, 0));
+    Map map1 = Map(3, 3);
+    map1.addObstacle(2, 2);
+
+    Robot robot1 = Robot("robot1", 1, 100, Point(0, 0), true);
 
     printGrid(width, height, obstacles);
 
