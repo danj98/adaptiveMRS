@@ -5,6 +5,7 @@
 #include "point.h"
 #include "robot.h"
 
+
 // prints a grid based on width and height
 void printGrid(int width, int height, std::vector<Point> obstacles) {
     for (int i = 0; i < height; i++) {
@@ -70,14 +71,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    Robot robot1;
+    Robot robot1 = Robot("robot1", 1, 100, Point(0, 0));
 
     printGrid(width, height, obstacles);
 
 
     assignTasks(mission, robotInfo);
-
-
 
     return 0;
 }
