@@ -10,8 +10,12 @@
 
 class Robot {
 public:
-    Robot(std::string robotName, int robotId, int initialBattery, Point initialPosition)
-        : name(std::move(robotName)), id(robotId), battery(initialBattery), currentPosition(initialPosition) {}
+    Robot(std::string robotName, int robotId, int initialBattery, Point initialPosition, bool active)
+        : name(std::move(robotName)),
+        id(robotId),
+        battery(initialBattery),
+        currentPosition(initialPosition),
+        active(active){}
 
     void setName(std::string n);
     void move(Point d);
