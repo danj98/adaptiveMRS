@@ -32,3 +32,15 @@ int Robot::getBattery() const {
 void Robot::setName(std::string n) {
     name = n;
 }
+
+bool Robot::canPerformTask(RobotCapabilities task) const {
+    return (capabilities & task) == task;
+}
+
+void Robot::recharge(int amount) {
+    battery += amount;
+}
+
+bool Robot::isActive() const {
+    return active;
+}
