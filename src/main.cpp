@@ -7,21 +7,9 @@
 #include "Map.h"
 
 
-// prints a grid based on width and height
-void printGrid(int width, int height, std::vector<Point> obstacles) {
-    for (int i = 0; i < height; i++) {
-        std::cout << "|";
-        for (int j = 0; j < width; j++) {
-            if (std::find(obstacles.begin(), obstacles.end(), Point(j, i)) != obstacles.end()) {
-                std::cout << "X";
-            } else {
-                std::cout << " ";
-            }
-            std::cout << "|";
-        }
-        std::cout << std::endl;
-    }
-}
+// prints the map to console
+void printMap(Map map, std::vector<Robot> robots) {}
+
 
 void assignTasks(YAML::Node mission, YAML::Node robotInfo) {
    std::cout << "Assigning tasks..." << std::endl;
