@@ -23,49 +23,52 @@ int main(int argc, char* argv[]) {
     }
 
     std::string filename = argv[1];
-    std::vector<Point> obstacles;
 
-    std::ifstream fin(filename);
-    if (!fin) {
-        std::cout << "File not found!" << std::endl;
-        return 1;
-    }
-    YAML::Node config = YAML::Load(fin);
+    // Loads the YAML file
+    YAML::Node config = YAML::LoadFile(filename);
 
     YAML::Node worldInfo = config["world_information"];
     YAML::Node robotInfo = config["robots"];
     YAML::Node mission = config["mission"];
 
+    // Map creation
     int width = worldInfo["grid_size"]["width"].as<int>();
     int height = worldInfo["grid_size"]["height"].as<int>();
     YAML::Node obstacleNodes = worldInfo["obstacles"];
 
-    // The map is a 2D array of size width x height
-    int map[width][height];
+    Map map = Map(width, height);
 
+    std::vector<Point> obstacles;
     for (const auto& node : obstacleNodes) {
         int x = node[0].as<int>();
         int y = node[1].as<int>();
         obstacles.emplace_back(x, y);
     }
 
-    // Fills map with 0s except for obstacles
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++){
-            if (std::find(obstacles.begin(), obstacles.end(), Point(j, i)) != obstacles.end()) {
-                map[j][i] = 1;
-            } else {
-                map[j][i] = 0;
-            }
-        }
-    }
+    map.setObstacles(obstacles);
 
-    Map map1 = Map(3, 3);
-    map1.addObstacle(2, 2);
+    // Robot creation
+    Robot robot1 = Robot(robotInfo[0]["name"].as<std::string>(),
+                         robotInfo[0]["id"].as<int>(),
+                         robotInfo[0]["battery"].as<int>(),
+                        Point(robotInfo[0]["start_position"][0].as<int>(), robotInfo[0]["start_position"][1].as<int>()),
+                         robotInfo[0]["active"].as<bool>(),
+                         robotInfo[0]["capabilities"].as<int>());
 
-    Robot robot1 = Robot("robot1", 1, 100, Point(0, 0), true);
+    Robot robot2 = Robot(robotInfo[1]["name"].as<std::string>(),
+                         robotInfo[1]["id"].as<int>(),
+                         robotInfo[1]["battery"].as<int>(),
+                         Point(robotInfo[1]["start_position"][0].as<int>(), robotInfo[1]["start_position"][1].as<int>()),
+                         robotInfo[1]["active"].as<bool>(),
+                         robotInfo[1]["capabilities"].as<int>());
 
-    printGrid(width, height, obstacles);
+    std::cout << "Robot 1: " << robot1.getPosition().x << ", " << robot1.getPosition().y << std::endl;
+    std::cout << "Robot 2: " << robot2.getPosition().x << ", " << robot2.getPosition().y << std::endl;
+
+    // Draw map
+    printGrid()
+
+    //printGrid(width, height, obstacles);
 
 
     assignTasks(mission, robotInfo);
