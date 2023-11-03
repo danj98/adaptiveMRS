@@ -9,10 +9,10 @@
 #include "point.h"
 
 enum RobotCapabilities {
-    GROUND_BASED = 1 << 0,
-    FLYING = 1 << 1,
-    PICK_UP = 1 << 2,
-    TRANSPORT = 1 << 3,
+    GROUND_BASED = 1 << 0,  // 0001
+    FLYING = 1 << 1,        // 0010
+    PICK_UP = 1 << 2,       // 0100
+    TRANSPORT = 1 << 3,     // 1000
 };
 
 class Robot {
