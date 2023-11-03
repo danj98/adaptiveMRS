@@ -6,6 +6,7 @@
 #define ADAPTIVEMRS_MAP_H
 #include <iostream>
 #include "yaml-cpp/yaml.h"
+#include "point.h"
 #include <stdio.h>
 #include <fstream>
 
@@ -21,6 +22,7 @@ public:
     void addObstacle(int x, int y);
     void removeObstacle(int x, int y);
     bool hasObstacle(int x, int y);
+    void setObstacles(const std::vector<Point>& obstacleNodes);
 
     int getWidth() const;
     int getHeight() const;
