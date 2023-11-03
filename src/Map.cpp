@@ -3,6 +3,7 @@
 //
 
 #include "Map.h"
+#include "point.h"
 
 void Map::addObstacle(int x, int y) {
     if(isValidCell(x, y)) {
@@ -33,4 +34,12 @@ int Map::getHeight() const {
 
 bool Map::isValidCell(int x, int y) const {
     return x >= 0 && x < width && y >= 0 && y < height;
+}
+
+void Map::setObstacles(const std::vector<Point>& obstacleNodes) {
+    for (const auto& node : obstacleNodes) {
+        int x = node.x;
+        int y = node.y;
+        addObstacle(x, y);
+    }
 }
