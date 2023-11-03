@@ -18,7 +18,8 @@ void Robot::move(Point newPosition) {
         return;
     }
     currentPosition = newPosition;
-    std::cout << name << " new position [" << newPosition.x << ", " << newPosition.y << "]";
+    //std::cout << name << " new position [" << newPosition.x << ", " << newPosition.y << "]";
+    printf("%s new position [%d, %d]\n", name.c_str(), newPosition.x, newPosition.y);
 }
 
 Point Robot::getPosition() const {
@@ -30,7 +31,7 @@ int Robot::getBattery() const {
 }
 
 void Robot::setName(std::string n) {
-    name = n;
+    name = std::move(n);
 }
 
 bool Robot::canPerformTask(RobotCapabilities task) const {
