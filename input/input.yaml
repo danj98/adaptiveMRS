@@ -8,13 +8,19 @@ world_information:
     - [5, 7]
 
 robots:
-  - id: robot_1
-    type: wheeled
+  - id: 1
+    name: robot_1
+    battery: 100
     start_position: [0, 0]
+    active: true
+    capabilities: 6
 
-  - id: robot_2
-    type: wheeled
+  - id: 2
+    name: robot_2
+    battery: 100
     start_position: [9, 9]
+    active: true
+    capabilities: 9
 
 mission:
   goal_position: [5, 7]
