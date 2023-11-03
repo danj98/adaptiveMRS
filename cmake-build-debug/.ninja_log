@@ -1,8 +1,0 @@
-# ninja log v5
-1	22	1698845960090402032	build.ninja	6ae73ca741799082
-1196	1258	1698830418457166705	adaptiveMRS	1c6ed8f5bfbd5056
-1	1196	1698830418397165417	CMakeFiles/adaptiveMRS.dir/main.cpp.o	ce206830bf754da9
-1	56	1698846640814400700	CMakeFiles/adaptiveMRS.dir/robot.cpp.o	ff356dda5fe38230
-1	40	1698846767387216322	CMakeFiles/adaptiveMRS.dir/robot.cpp.o	ff356dda5fe38230
-1	1483	1698846768827210410	CMakeFiles/adaptiveMRS.dir/main.cpp.o	ce206830bf754da9
-1483	1556	1698846768900543443	adaptiveMRS	ed32ac3df82f8e8a
