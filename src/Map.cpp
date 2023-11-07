@@ -7,7 +7,7 @@
 
 void Map::addObstacle(int x, int y) {
     if(isValidCell(x, y)) {
-        grid[y][x] = true;
+        grid[y][x] = OBSTACLE;
     }
 }
 
@@ -19,7 +19,7 @@ void Map::removeObstacle(int x, int y) {
 
 bool Map::hasObstacle(int x, int y) {
     if(isValidCell(x, y)) {
-        return grid[y][x];
+        return grid[y][x] == OBSTACLE;
     }
     return false;
 }
@@ -41,5 +41,35 @@ void Map::setObstacles(const std::vector<Point>& obstacleNodes) {
         int x = node.x;
         int y = node.y;
         addObstacle(x, y);
+    }
+}
+
+void Map::setRobotPosition(int x, int y) {
+    if(isValidCell(x, y)) {
+        grid[y][x] = ROBOT;
+    }
+}
+
+void Map::setTaskPosition(int x, int y) {
+    if(isValidCell(x, y)) {
+        grid[y][x] = TASK;
+    }
+}
+
+void Map::displayMap() const {
+    for (int i = 0; i < height; i++) {
+        printf("|");
+        for (int j = 0; j < width; j++) {
+            if (grid[i][j] == EMPTY) {
+                printf(" ");
+            } else if (grid[i][j] == OBSTACLE) {
+                printf("O");
+            } else if (grid[i][j] == ROBOT) {
+                printf("R");
+            } else if (grid[i][j] == TASK) {
+                printf("T");
+            }
+        }
+        printf("|\n");
     }
 }
