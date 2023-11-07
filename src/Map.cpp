@@ -66,18 +66,20 @@ void Map::setTaskPosition(int x, int y) {
 
 void Map::displayMap() const {
     for (int i = 0; i < height; i++) {
-        printf("|");
+        std::cout << "| ";
         for (int j = 0; j < width; j++) {
             if (grid[i][j] == EMPTY) {
-                printf(" ");
-            } else if (grid[i][j] == OBSTACLE) {
-                printf("O");
+                std::cout << " ";
             } else if (grid[i][j] == ROBOT) {
-                printf("R");
+                std::cout << "R";
             } else if (grid[i][j] == TASK) {
-                printf("T");
+                std::cout << "T";
+            } else if (grid[i][j] == OBSTACLE) {
+                std::cout << "O";
             }
+            std::cout << " ";
         }
-        printf("|\n");
+        std::cout << "|";
+        std::cout << std::endl;
     }
 }
