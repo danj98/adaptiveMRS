@@ -7,10 +7,6 @@
 #include "Map.h"
 
 
-// prints the map to console
-void printMap(Map map, std::vector<Robot> robots) {}
-
-
 void assignTasks(YAML::Node mission, YAML::Node robotInfo) {
    std::cout << "Assigning tasks..." << std::endl;
 }
@@ -66,9 +62,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Robot 2: " << robot2.getPosition().x << ", " << robot2.getPosition().y << std::endl;
 
     // Draw map
-    printGrid()
-
-    //printGrid(width, height, obstacles);
+    map.displayMap();
 
 
     assignTasks(mission, robotInfo);
