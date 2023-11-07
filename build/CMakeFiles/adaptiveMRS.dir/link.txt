@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/adaptiveMRS.dir/main.cpp.o -o adaptiveMRS  -lyaml-cpp 
