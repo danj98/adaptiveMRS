@@ -23,7 +23,7 @@ robots:
     capabilities: 9
 
 mission:
-  goal_position: [5, 7]
+  goal_position: [5, 6]
 
 tasks:
   - task_id: task_1

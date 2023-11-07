@@ -46,12 +46,20 @@ void Map::setObstacles(const std::vector<Point>& obstacleNodes) {
 
 void Map::setRobotPosition(int x, int y) {
     if(isValidCell(x, y)) {
+        if (grid[y][x] == OBSTACLE) {
+            std::cerr << "Cannot place robot on obstacle!" << std::endl;
+            return;
+        }
         grid[y][x] = ROBOT;
     }
 }
 
 void Map::setTaskPosition(int x, int y) {
     if(isValidCell(x, y)) {
+        if (grid[y][x] == OBSTACLE) {
+            std::cerr << "Cannot place task on obstacle!" << std::endl;
+            return;
+        }
         grid[y][x] = TASK;
     }
 }
