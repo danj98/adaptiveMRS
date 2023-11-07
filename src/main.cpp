@@ -61,11 +61,16 @@ int main(int argc, char* argv[]) {
     std::cout << "Robot 1: " << robot1.getPosition().x << ", " << robot1.getPosition().y << std::endl;
     std::cout << "Robot 2: " << robot2.getPosition().x << ", " << robot2.getPosition().y << std::endl;
 
+    map.setRobotPosition(robot1.getPosition().x, robot1.getPosition().y);
+    map.setRobotPosition(robot2.getPosition().x, robot2.getPosition().y);
+
+    // Task creation
+    Point goal = Point(mission["goal_position"][0].as<int>(), mission["goal_position"][1].as<int>());
+    map.setTaskPosition(goal.x, goal.y);
+
     // Draw map
     map.displayMap();
 
-
-    assignTasks(mission, robotInfo);
 
     return 0;
 }
