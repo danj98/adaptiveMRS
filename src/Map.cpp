@@ -17,6 +17,13 @@ void Map::removeObstacle(int x, int y) {
     }
 }
 
+bool Map::isEmpty(int x, int y) {
+    if(isValidCell(x, y)) {
+        return grid[y][x] == EMPTY;
+    }
+    return false;
+}
+
 bool Map::hasObstacle(int x, int y) {
     if(isValidCell(x, y)) {
         return grid[y][x] == OBSTACLE;
