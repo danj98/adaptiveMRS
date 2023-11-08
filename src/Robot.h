@@ -37,6 +37,7 @@ public:
     int getBattery() const;
     bool canPerformTask(RobotCapabilities task) const;
     bool isActive() const;
+    std::vector<Point> getNeighbors() const;
 
 private:
     std::string name;

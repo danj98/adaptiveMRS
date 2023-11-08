@@ -45,3 +45,12 @@ void Robot::recharge(int amount) {
 bool Robot::isActive() const {
     return active;
 }
+
+std::vector<Point> Robot::getNeighbors() const {
+    std::vector<Point> neighbors;
+    neighbors.emplace_back(currentPosition.x - 1, currentPosition.y);
+    neighbors.emplace_back(currentPosition.x + 1, currentPosition.y);
+    neighbors.emplace_back(currentPosition.x, currentPosition.y - 1);
+    neighbors.emplace_back(currentPosition.x, currentPosition.y + 1);
+    return neighbors;
+}

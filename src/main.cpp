@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <fstream>
 #include "point.h"
-#include "robot.h"
+#include "Robot.h"
 #include "Map.h"
 
 
