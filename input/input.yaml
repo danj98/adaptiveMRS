@@ -26,7 +26,6 @@ mission:
   goal_position: [5, 6]
 
 tasks:
-  - task_id: task_1
-    task_type: reach_position
-    position: [7, 5]
-    allowed_robots: [robot_1, robot_2]
+  - id: 1
+    type: goto
+    input_type: Point
