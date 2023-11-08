@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <utility>
-#include "robot.h"
+#include "Robot.h"
 #include "point.h"
 #include <cmath>
 #include <yaml-cpp/node/node.h>
