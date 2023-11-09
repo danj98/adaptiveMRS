@@ -2,6 +2,15 @@ cmake_minimum_required(VERSION 3.26)
 project(adaptiveMRS)
 
 set(CMAKE_CXX_STANDARD 17)
+set(YAML_CPP_INSTALL_DIR ${CMAKE_BINARY_DIR/yaml-cpp})
+
+include(ExternalProject)
+
+ExternalProject_Add(yaml-cpp
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
+        GIT_TAG yaml-cpp-0.8.0
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${YAML_CPP_INSTALL_DIR}
+)
 
 add_executable(adaptiveMRS src/main.cpp
         src/Robot.cpp
@@ -18,4 +27,5 @@ add_executable(adaptiveMRS src/main.cpp
 
 find_package(yaml-cpp REQUIRED)
 
-target_link_libraries(adaptiveMRS yaml-cpp)
+target_include_directories(adaptiveMRS PRIVATE ${YAML_CPP_INSTALL_DIR}/include)
+target_link_libraries(adaptiveMRS PRIVATE ${YAML_CPP_INSTALL_DIR}/lib/libyaml-cpp.a)
