@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.26)
 project(adaptiveMRS)
 
 set(CMAKE_CXX_STANDARD 17)
-set(YAML_CPP_INSTALL_DIR ${CMAKE_BINARY_DIR/yaml-cpp})
+set(YAML_CPP_INSTALL_DIR ${CMAKE_BINARY_DIR}/yaml-cpp)
 
 include(ExternalProject)
 
+
 ExternalProject_Add(yaml-cpp
-        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
-        GIT_TAG yaml-cpp-0.8.0
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG 0.8.0
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${YAML_CPP_INSTALL_DIR}
 )
 
@@ -25,7 +26,7 @@ add_executable(adaptiveMRS src/main.cpp
         src/GlobalMissionManager.cpp
         src/GlobalMissionManager.h)
 
-find_package(yaml-cpp REQUIRED)
+#find_package(yaml-cpp REQUIRED)
 
 target_include_directories(adaptiveMRS PRIVATE ${YAML_CPP_INSTALL_DIR}/include)
 target_link_libraries(adaptiveMRS PRIVATE ${YAML_CPP_INSTALL_DIR}/lib/libyaml-cpp.a)
