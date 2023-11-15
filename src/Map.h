@@ -9,16 +9,11 @@
 #include "point.h"
 #include <stdio.h>
 #include <fstream>
+#include "Cell.h"
 
 
 class Map {
 public:
-
-    // Constants for map entities
-    static const int EMPTY = 0;
-    static const int OBSTACLE = 1;
-    static const int ROBOT = 2;
-    static const int TASK = 3;
 
     Map() = default;
     Map(int width, int height) : width(width), height(height) {
@@ -26,7 +21,7 @@ public:
         for (int i = 0; i < height; i++) {
             grid[i].resize(width);
             for (int j = 0; j < width; j++) {
-                grid[i][j] = EMPTY;
+                grid[i][j]  = CellType::EMPTY;
             }
         }
     }
@@ -35,17 +30,19 @@ public:
     void removeObstacle(int x, int y);
     bool isEmpty(int x, int y);
     bool hasObstacle(int x, int y);
-    void setObstacles(const std::vector<Point>& obstacleNodes);
+    void setObstacles(const std::vector<Cell>& obstacleNodes);
     void setRobotPosition(int x, int y);
     void setTaskPosition(int x, int y);
 
     int getWidth() const;
     int getHeight() const;
+    std::vector<std::vector<CellType>> getGrid() const;
 
     void displayMap() const;
+    void displayMapWithRoute(const std::vector<Cell>& route) const;
 
 private:
-    std::vector<std::vector<int>> grid;
+    std::vector<std::vector<CellType>> grid;
     int width;
     int height;
 
