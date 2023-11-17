@@ -7,24 +7,38 @@
 
 
 #include <vector>
+#include <yaml-cpp/node/node.h>
 #include "Mission.h"
+#include "Robot.h"
+#include "Map.h"
+
+struct BidResult {
+    Robot selectedRobot;
+    double highestBid;
+};
 
 class GlobalMissionManager {
 public:
-    GlobalMissionManager() = default;
+    GlobalMissionManager(
+            std::vector<Robot> robots,
+            Mission mission,
+            Map map) :
+            robots(robots),
+            currentMission(mission),
+            map(map){}
 
-    void setMission(Mission mission);
-
-    // Checks validity of mission
+    void setMission(const YAML::Node& missionNode);
+    void run();
     bool isValidMission(Mission mission);
+    BidResult getHighestBid(std::vector<Robot> robots, Mission mission, Map map);
+    void assignMission(Robot robot, Mission mission);
 
-
-    
 
 
 private:
     Mission currentMission;
-
+    std::vector<Robot> robots;
+    Map map;
 };
 
 
