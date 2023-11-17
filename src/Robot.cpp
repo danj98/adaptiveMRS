@@ -9,7 +9,7 @@
 #include <cmath>
 #include <yaml-cpp/node/node.h>
 
-void Robot::move(Point newPosition) {
+void Robot::move(Cell newPosition) {
     int distance = sqrt(pow(newPosition.x - currentPosition.x, 2) + pow(newPosition.y - currentPosition.y, 2));
     battery -= distance;
     if (battery < 0) {
@@ -22,7 +22,7 @@ void Robot::move(Point newPosition) {
     printf("%s new position [%d, %d]\n", name.c_str(), newPosition.x, newPosition.y);
 }
 
-Point Robot::getPosition() const {
+Cell Robot::getPosition() const {
     return currentPosition;
 }
 

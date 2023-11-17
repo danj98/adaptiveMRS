@@ -20,7 +20,7 @@ public:
     Robot(std::string robotName,
           int robotId,
           int initialBattery,
-          Point initialPosition,
+          Cell initialPosition,
           bool active,
           int capabilities) :
         name(std::move(robotName)),
@@ -31,9 +31,9 @@ public:
         capabilities(capabilities){}
 
     void setName(std::string n);
-    void move(Point d);
+    void move(Cell d);
     void recharge(int amount);
-    Point getPosition() const;
+    Cell getPosition() const;
     int getBattery() const;
     bool canPerformTask(RobotCapabilities task) const;
     bool isActive() const;
@@ -43,7 +43,7 @@ private:
     std::string name;
     int id;
     int battery;
-    Point currentPosition;
+    Cell currentPosition;
     bool active;
     int capabilities;
 };
