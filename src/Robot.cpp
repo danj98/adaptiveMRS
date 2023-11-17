@@ -6,6 +6,7 @@
 #include <utility>
 #include "Robot.h"
 #include "point.h"
+#include "LocalMissionManager.h"
 #include <cmath>
 #include <yaml-cpp/node/node.h>
 
@@ -46,11 +47,25 @@ bool Robot::isActive() const {
     return active;
 }
 
-std::vector<Point> Robot::getNeighbors() const {
-    std::vector<Point> neighbors;
+int Robot::getMovementCost() const {
+    return movementCost;
+}
+
+std::vector<Cell> Robot::getRoute() const {
+    return route;
+}
+
+void Robot::setRoute(std::vector<Cell> r) {
+    route = std::move(r);
+}
+
+/*
+std::vector<Cell> Robot::getNeighbors() const {
+    std::vector<Cell> neighbors;
     neighbors.emplace_back(currentPosition.x - 1, currentPosition.y);
     neighbors.emplace_back(currentPosition.x + 1, currentPosition.y);
     neighbors.emplace_back(currentPosition.x, currentPosition.y - 1);
     neighbors.emplace_back(currentPosition.x, currentPosition.y + 1);
     return neighbors;
 }
+*/

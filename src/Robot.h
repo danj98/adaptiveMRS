@@ -7,6 +7,8 @@
 
 #include <yaml-cpp/node/node.h>
 #include "point.h"
+#include "Mission.h"
+#include "Cell.h"
 
 enum RobotCapabilities {
     GROUND_BASED = 1 << 0,  // 0001
@@ -37,7 +39,11 @@ public:
     int getBattery() const;
     bool canPerformTask(RobotCapabilities task) const;
     bool isActive() const;
-    std::vector<Point> getNeighbors() const;
+    std::vector<Cell> getNeighbors() const;
+    int getMovementCost() const;
+    std::vector<Cell> getRoute() const;
+    void setRoute(std::vector<Cell> r);
+
 
 private:
     std::string name;
@@ -46,6 +52,8 @@ private:
     Cell currentPosition;
     bool active;
     int capabilities;
+    int movementCost = 1;
+    std::vector<Cell> route;
 };
 
 
