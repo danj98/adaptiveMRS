@@ -24,7 +24,10 @@ add_executable(adaptiveMRS src/main.cpp
         src/Task.cpp
         src/Task.h
         src/GlobalMissionManager.cpp
-        src/GlobalMissionManager.h)
+        src/GlobalMissionManager.h
+        src/LocalMissionManager.cpp
+        src/LocalMissionManager.h
+        src/Cell.h)
 
 #find_package(yaml-cpp REQUIRED)
 
