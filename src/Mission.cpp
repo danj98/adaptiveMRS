@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include "Mission.h"
+#include "Cell.h"
 
 void Mission::addTask(Task task) {
     if (isValidTask(task)) {
@@ -15,10 +16,9 @@ void Mission::removeTask(Task task) {
     //TODO: implement removeTask
 }
 
-void Mission::setGoal(Task goal) {
-    if (isValidGoal(goal)) {
-        Mission::goal = goal;
-    }
+void Mission::setGoal(Cell goal) {
+    Mission::goal = goal;
+    goal.type = CellType::TASK;
 }
 
 void Mission::setTasks(std::vector<Task> tasks) {

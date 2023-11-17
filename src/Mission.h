@@ -8,22 +8,22 @@
 #include <utility>
 #include <vector>
 #include "Task.h"
+#include "point.h"
+#include "Cell.h"
 
-/*
- * A mission with a goal and the tasks the mission can be decomposed into
- */
 class Mission {
 public:
     std::vector<Task> tasks;
-    Task goal;
+    Cell goal;
 
     Mission() = default;
-    Mission(std::vector<Task> tasks, Task goal) : tasks(tasks), goal(goal) {}
+    Mission(std::vector<Task> tasks, Task goal) : tasks(tasks), goal(goal.getX(), goal.getY(), CellType::TASK) {}
 
     void addTask(Task task);
     void removeTask(Task task);
-    void setGoal(Task goal);
+    void setGoal(Cell goal);
     void setTasks(std::vector<Task> tasks);
+
 private:
     bool isValidTask(Task task);
     bool isValidGoal(Task goal);
