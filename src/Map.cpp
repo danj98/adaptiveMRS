@@ -90,3 +90,41 @@ void Map::displayMap() const {
         std::cout << std::endl;
     }
 }
+
+std::vector<std::vector<CellType>> Map::getGrid() const {
+    return grid;
+}
+
+/*
+ * Displays the map with the route taken by the robot.
+ * The route is displayed as an 'x' on the map (without overwriting the robot's or task position).
+ */
+void Map::displayMapWithRoute(const std::vector<Cell>& route) const {
+    std::vector<std::vector<CellType>> gridCopy = grid;
+
+    for (const auto& cell : route) {
+        if (gridCopy[cell.y][cell.x] == CellType::EMPTY) {
+            gridCopy[cell.y][cell.x] = CellType::ROUTE;
+        }
+    }
+
+    for (int i = 0; i < height; i++) {
+        std::cout << "| ";
+        for (int j = 0; j < width; j++) {
+            if (gridCopy[i][j] == CellType::EMPTY) {
+                std::cout << " ";
+            } else if (gridCopy[i][j] == CellType::ROBOT) {
+                std::cout << "R";
+            } else if (gridCopy[i][j] == CellType::TASK) {
+                std::cout << "T";
+            } else if (gridCopy[i][j] == CellType::OBSTACLE) {
+                std::cout << "O";
+            } else if (gridCopy[i][j] == CellType::ROUTE) {
+                std::cout << "x";
+            }
+            std::cout << " ";
+        }
+        std::cout << "|";
+        std::cout << std::endl;
+    }
+}
