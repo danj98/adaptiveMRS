@@ -15,35 +15,34 @@ class Robot (
     var currentLocation: Location,
     val home: Location,
     var status: Status = Status.IDLE,
-    var currentTask: Task? = null,
+    var task: Task? = null,
     private var path: List<Location> = listOf(),
 ) {
     fun execute(context: Context) {
         when (status) {
             Status.IDLE -> {
-                if (currentTask != null) {
-                    path = aStar(currentLocation, currentTask!!.referencePosition, context)
-                    status = if (isWithinOneCellOf(currentTask!!.referencePosition)) Status.WORKING else Status.MOVING
+                if (task != null) {
+                    path = aStar(currentLocation, task!!.referencePosition, context)
+                    status = if (isWithinOneCellOf(task!!.referencePosition)) Status.WORKING else Status.MOVING
                 }
             }
             Status.MOVING -> {
-                println(path)
                 if (path.isNotEmpty()) {
                     val nextStep = path.first()
                     moveTo(nextStep)
                     path = path.drop(1)
-                    if (isWithinOneCellOf(currentTask!!.referencePosition)) {
+                    if (isWithinOneCellOf(task!!.referencePosition)) {
                         status = Status.WORKING
                     }
                 }
             }
             Status.WORKING -> {
-                if (currentTask!!.workload <= 0) {
-                    currentTask!!.isComplete = true
+                if (task!!.workload <= 0) {
+                    task!!.isComplete = true
                     status = Status.IDLE
-                    currentTask = null
+                    task = null
                 } else {
-                    currentTask!!.workload -= 0.5
+                    task!!.workload -= 0.5
                 }
             }
         }
@@ -64,6 +63,7 @@ class MovementCapability (
 )
 
 class Battery (
+    val level: Double = 1.0,
     val capacity: Double,
     val rechargeTime: Double,
 )
@@ -71,7 +71,8 @@ class Battery (
 class Device (
     val id: UUID,
     val name: String,
-    val supportedActions: List<Action>
+    val supportedActions: List<Action>,
+    val workingSpeed: Double = 1.0
 ) {
     fun supports(action: Action): Boolean {
         return action in supportedActions
