@@ -27,4 +27,9 @@ open class Area (
 
 class Obstacle (
     shell: List<Location>
-) : Area(shell)
+) : Area(shell) {
+
+    fun isPointObstacle(location: Location): Boolean {
+        return location.x >= shell[0].x && location.x <= shell[2].x && location.y >= shell[0].y && location.y <= shell[2].y
+    }
+}
