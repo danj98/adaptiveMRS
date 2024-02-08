@@ -67,3 +67,37 @@ fun qLearningTaskAssignment(env: Environment): State{
     return newState
 }
 
+/*
+ * Market-based task allocation
+ */
+
+fun marketBasedAssignment(env: Environment): State {
+    val state = env.getCurrentState()
+    val availableTasks = state.mission.tasks.filter { !it.isComplete }
+    val availableRobots = state.robots.filter { it.status == Status.IDLE }
+    val task = availableTasks.random()
+
+    // Filter to only include robots that can perform the task
+    val capableRobots = availableRobots.filter { robot ->
+        robot.devices.any { device ->
+            device.supportedActions.any { action ->
+                action == task.actionType
+            }
+        }
+    }
+    // Bid based on distance to task, battery level, movementspeed, and device workingSpeed
+    val bids = capableRobots.map { robot ->
+        val distance = robot.currentLocation.distanceTo(task.referencePosition, state.context)
+        val movementSpeed = robot.movementCapabilities.maxSpeed
+        val deviceWorkingSpeed = robot.devices.find { it.supportedActions.contains(task.actionType) }!!.workingSpeed
+        val bid = movementSpeed + deviceWorkingSpeed - distance
+        robot to bid
+    }
+
+    // Select a robot based on the highest bid
+    val selectedRobot = bids.maxByOrNull { it.second }!!.first
+    selectedRobot.task = task
+    task.assignedRobots.add(selectedRobot)
+    return state
+}
+

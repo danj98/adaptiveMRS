@@ -31,7 +31,8 @@ class Environment(val mission: Mission, val robots: List<Robot>, initialContext:
         }
         // If any robots are idle, assign them a task
         if (state.robots.any { it.status == Status.IDLE }) {
-            state = qLearningTaskAssignment(this)
+            state = marketBasedAssignment(this)
+            //state = randomTaskAssignment(state)
         }
 
         for (robots in state.robots) {
