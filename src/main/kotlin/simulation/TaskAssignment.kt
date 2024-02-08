@@ -1,8 +1,6 @@
 package adaptiveMRS.simulation
 
-import adaptiveMRS.mission.Task
 import adaptiveMRS.robot.Status
-import kotlin.time.times
 
 /**
  * Random task assignment used for testing purposes
@@ -22,7 +20,7 @@ fun randomTaskAssignment(state: State): State {
                 }
     }
     val task = availableTasks.random()
-    robot.currentTask = task
+    robot.task = task
     task.assignedRobots.add(robot)
     return state
 }
