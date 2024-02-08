@@ -2,7 +2,7 @@ package adaptiveMRS.simulation
 
 import adaptiveMRS.mission.Context
 import adaptiveMRS.mission.Mission
-import adaptiveMRS.utility.Location
+import adaptiveMRS.mission.Task
 import adaptiveMRS.robot.Robot
 import adaptiveMRS.robot.Status
 
@@ -15,6 +15,12 @@ data class State(
 data class Action (
     val robotIndex: Int,
     val taskIndex: Int
+)
+
+// Represents the assignment of tasks to robots
+data class TaskAssignment(
+    val task: Task,
+    var assignedRobot: Robot? = null
 )
 
 class Environment(val mission: Mission, val robots: List<Robot>, initialContext: Context) {
@@ -44,24 +50,6 @@ class Environment(val mission: Mission, val robots: List<Robot>, initialContext:
                 task.isComplete = true
             }
         }
-        // Print any new assignments
-        state.mission.tasks.forEachIndexed { _, task ->
-            if (task.assignedRobots.isNotEmpty()) {
-                println("Task ${task.id} is assigned to ${task.assignedRobots.map { it.id }}")
-            }
-        }
-
-        // Print the status of each robot
-        state.robots.forEach { robot ->
-            println("Robot ${robot.id} is ${robot.status}")
-        }
-
-        // Print if any new task is complete
-        state.mission.tasks.forEach { task ->
-            if (task.isComplete) {
-                println("Task ${task.id} is complete")
-            }
-        }
         iterations++
     }
 
@@ -69,8 +57,7 @@ class Environment(val mission: Mission, val robots: List<Robot>, initialContext:
         println("Starting...")
         while (state.mission.tasks.any { !it.isComplete }) {
             step()
-            println("new step...")
-            Thread.sleep(500)
+            //Thread.sleep(500)
         }
         println("Mission complete")
         println("Iterations used: $iterations")
@@ -105,7 +92,7 @@ class Environment(val mission: Mission, val robots: List<Robot>, initialContext:
     fun performAction(state: State, action: Action): Pair<State, Double> {
         val robot = state.robots[action.robotIndex]
         val task = state.mission.tasks[action.taskIndex]
-        robot.currentTask = task
+        robot.task = task
         task.assignedRobots.add(robot)
         return state to 0.0
     }
