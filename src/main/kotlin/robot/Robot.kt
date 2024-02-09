@@ -1,5 +1,6 @@
 package adaptiveMRS.robot
 
+import adaptiveMRS.mission.CellType
 import adaptiveMRS.mission.Context
 import adaptiveMRS.mission.Task
 import adaptiveMRS.utility.Location
@@ -20,31 +21,9 @@ class Robot (
 ) {
     fun execute(context: Context) {
         when (status) {
-            Status.IDLE -> {
-                if (task != null) {
-                    path = aStar(currentLocation, task!!.referencePosition, context)
-                    status = if (isWithinOneCellOf(task!!.referencePosition)) Status.WORKING else Status.MOVING
-                }
-            }
-            Status.MOVING -> {
-                if (path.isNotEmpty()) {
-                    val nextStep = path.first()
-                    moveTo(nextStep)
-                    path = path.drop(1)
-                    if (isWithinOneCellOf(task!!.referencePosition)) {
-                        status = Status.WORKING
-                    }
-                }
-            }
-            Status.WORKING -> {
-                if (task!!.workload <= 0) {
-                    task!!.isComplete = true
-                    status = Status.IDLE
-                    task = null
-                } else {
-                    task!!.workload -= 0.5
-                }
-            }
+            Status.IDLE -> prepareForTask(context)
+            Status.MOVING -> moveToNextLocation()
+            Status.WORKING -> performTaskAction()
         }
     }
 
@@ -54,6 +33,39 @@ class Robot (
 
     private fun moveTo(target: Location) {
         currentLocation = target
+    }
+
+    /*
+     * Does nothing if the robot has no tasks assigned.
+     * When the robot has an assigned task, its status changes to moving.
+     */
+    private fun prepareForTask(context: Context) {
+        if (task == null) return
+        path = aStar(currentLocation, task!!.referencePosition, context)
+        status = Status.MOVING
+    }
+
+    private fun moveToNextLocation() {
+        if (path.isNotEmpty()) {
+            val nextStep = path.first()
+            moveTo(nextStep)
+            path = path.drop(1)
+            // If the robot is equipped with a lidar, it scans the environment
+            if (devices.any { it is LIDAR }) {
+                devices.filterIsInstance<LIDAR>().forEach { it. }
+            }
+        }
+        if (task != null && isWithinOneCellOf(task!!.referencePosition)) {
+            status = Status.WORKING
+        }
+    }
+
+    private fun performTaskAction() {
+        if ((task?.workload ?: 0.0) <= 0) {
+            task?.isComplete = true
+            task = null
+            status = Status.IDLE
+        }
     }
 }
 
@@ -68,25 +80,75 @@ class Battery (
     val rechargeTime: Double,
 )
 
-class Device (
+open class Device (
     val id: UUID,
     val name: String,
     val supportedActions: List<Action>,
-    val workingSpeed: Double = 1.0
 ) {
     fun supports(action: Action): Boolean {
         return action in supportedActions
     }
 }
 
+class Arm (
+    val workingSpeed: Double,
+) : Device(
+    id = UUID.randomUUID(),
+    name = "Arm",
+    supportedActions = listOf(Action.WORK),
+)
+
+class LIDAR (
+    private val detectionRange: Double,
+    private val discoveries: Map<Location, CellType> = mapOf(),
+) : Device(
+    id = UUID.randomUUID(),
+    name = "LIDAR",
+    supportedActions = listOf(Action.DETECTION),
+) {
+    fun execute(robotLocation: Location, context: Context) {
+        val x = robotLocation.x
+        val y = robotLocation.y
+        val discoveries = mutableMapOf<Location, CellType>()
+        for (i in -detectionRange.toInt()..detectionRange.toInt()) {
+            for (j in -detectionRange.toInt()..detectionRange.toInt()) {
+                val location = Location(x + i, y + j)
+                if (context.knownLocations.containsKey(location)) {
+                    discoveries[location] = context.knownLocations[location]!!
+                }
+            }
+        }
+
+    }
+}
+
 enum class Action {
-    MOVE,
+    MOVE_GROUND,
     WORK,
-    DETECT_OBSTACLE,
+    DETECTION,
 }
 
 enum class Status {
     IDLE,
     MOVING,
     WORKING
+}
+
+interface DeviceAction {
+    fun execute(robot: Robot, context: Context)
+}
+
+class LIDARAction(
+    private val detectionRange: Int
+) : DeviceAction {
+    override fun execute(robot: Robot, context: Context) {
+
+    }
+}
+
+class ArmAction(
+    private val workingSpeed: Int
+) : DeviceAction {
+    override fun execute(robot: Robot, context: Context) {
+    }
 }
