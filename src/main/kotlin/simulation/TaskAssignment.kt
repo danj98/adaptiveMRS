@@ -1,5 +1,6 @@
 package adaptiveMRS.simulation
 
+import adaptiveMRS.robot.Arm
 import adaptiveMRS.robot.Status
 
 /**
@@ -87,7 +88,13 @@ fun marketBasedAssignment(env: Environment): State {
     val bids = capableRobots.map { robot ->
         val distance = robot.currentLocation.distanceTo(task.referencePosition, state.context)
         val movementSpeed = robot.movementCapabilities.maxSpeed
-        val deviceWorkingSpeed = robot.devices.find { it.supportedActions.contains(task.actionType) }!!.workingSpeed
+        val deviceWorkingSpeed = robot.devices.filter { it.supportedActions.contains(task.actionType) }
+            .maxOfOrNull { device ->
+                when (device) {
+                    is Arm -> device.workingSpeed
+                    else -> 0.0
+                }
+            } ?: 0.0
         val bid = movementSpeed + deviceWorkingSpeed - distance
         robot to bid
     }
