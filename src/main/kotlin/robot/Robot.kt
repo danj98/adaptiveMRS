@@ -7,6 +7,8 @@ import adaptiveMRS.utility.Location
 import adaptiveMRS.utility.aStar
 import java.util.UUID
 import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class Robot (
     val id: Int,
@@ -22,7 +24,7 @@ class Robot (
     fun execute(context: Context) {
         when (status) {
             Status.IDLE -> prepareForTask(context)
-            Status.MOVING -> moveToNextLocation()
+            Status.MOVING -> moveToNextLocation(context)
             Status.WORKING -> performTaskAction()
         }
     }
@@ -45,14 +47,14 @@ class Robot (
         status = Status.MOVING
     }
 
-    private fun moveToNextLocation() {
+    private fun moveToNextLocation(context: Context) {
         if (path.isNotEmpty()) {
             val nextStep = path.first()
             moveTo(nextStep)
             path = path.drop(1)
             // If the robot is equipped with a lidar, it scans the environment
             if (devices.any { it is LIDAR }) {
-                devices.filterIsInstance<LIDAR>().forEach { it. }
+                devices.filterIsInstance<LIDAR>().forEach { it.execute(currentLocation, context) }
             }
         }
         if (task != null && isWithinOneCellOf(task!!.referencePosition)) {
@@ -100,25 +102,38 @@ class Arm (
 
 class LIDAR (
     private val detectionRange: Double,
-    private val discoveries: Map<Location, CellType> = mapOf(),
 ) : Device(
     id = UUID.randomUUID(),
     name = "LIDAR",
     supportedActions = listOf(Action.DETECTION),
 ) {
     fun execute(robotLocation: Location, context: Context) {
-        val x = robotLocation.x
-        val y = robotLocation.y
-        val discoveries = mutableMapOf<Location, CellType>()
-        for (i in -detectionRange.toInt()..detectionRange.toInt()) {
-            for (j in -detectionRange.toInt()..detectionRange.toInt()) {
-                val location = Location(x + i, y + j)
-                if (context.knownLocations.containsKey(location)) {
-                    discoveries[location] = context.knownLocations[location]!!
+        val findings = mutableMapOf<Location, CellType>()
+
+        // Check task locations against detection range
+        context.taskLocations.forEach { taskLocation ->
+            if (isWithinRange(robotLocation, taskLocation) && !context.isKnownTask(taskLocation)) {
+                findings[taskLocation] = CellType.TASK
+            }
+        }
+        // Check if each obstacle against detection range
+        context.obstacles.forEach { obstacle ->
+            obstacle.shell.forEach { obstacleLocation ->
+                if (isWithinRange(robotLocation, obstacleLocation) && !context.isKnownObstacle(obstacleLocation)) {
+                    findings[obstacleLocation] = CellType.OBSTACLE
                 }
             }
         }
 
+        findings.forEach() { (location, cellType) ->
+            context.knownLocations[location] = cellType
+        }
+    }
+
+    private fun isWithinRange(robotLocation: Location, targetLocation: Location): Boolean {
+        val distance = sqrt(((robotLocation.x - targetLocation.x).toDouble().pow(2)) +
+                    ((robotLocation.y - targetLocation.y).toDouble().pow(2)))
+        return distance <= detectionRange
     }
 }
 
