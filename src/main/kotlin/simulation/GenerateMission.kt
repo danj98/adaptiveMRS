@@ -12,7 +12,9 @@ fun generateMission(mapSize: Pair<Int, Int>, numTasks: Int, numRobots: Int, seed
         id = UUID.randomUUID(),
         mapSize.first,
         mapSize.second,
-        generateObstacles(mapSize, rng)
+        generateObstacles(mapSize, rng),
+        knownLocations = mutableMapOf(),
+        taskLocations = listOf()
     )
     val tasks = generateTasks(mapSize, numTasks, rng, context.obstacles)
     generateDependecies(tasks, rng)
