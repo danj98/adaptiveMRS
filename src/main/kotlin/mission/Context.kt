@@ -8,7 +8,7 @@ data class Context (
     val width: Int,
     val height: Int,
     val obstacles: List<Obstacle>,
-    val knownLocations: Map<Location, CellType>,
+    val knownLocations: MutableMap<Location, CellType>,
     val taskLocations: List<Location>
 ) {
     fun isObstacle(location: Location): Boolean {
