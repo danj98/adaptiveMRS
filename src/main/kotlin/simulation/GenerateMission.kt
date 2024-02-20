@@ -13,11 +13,14 @@ fun generateMission(mapSize: Pair<Int, Int>, numTasks: Int, numRobots: Int, seed
         mapSize.first,
         mapSize.second,
         generateObstacles(mapSize, rng),
-        knownLocations = mutableMapOf(),
+        knownLocations = mutableMapOf<Location, CellType>(),
         taskLocations = listOf()
     )
-    val tasks = generateTasks(mapSize, numTasks, rng, context.obstacles)
+    addKnownLocations(context)
+    val tasks = generateTasks(mapSize, numTasks, rng, context)
     generateDependecies(tasks, rng)
+    addKnownLocations(context)
+
 
     val robots = generateRobots(numRobots, context, rng)
 
@@ -28,6 +31,21 @@ fun generateMission(mapSize: Pair<Int, Int>, numTasks: Int, numRobots: Int, seed
     )
 
     return Triple(context, mission, robots)
+}
+
+fun addKnownLocations(context: Context) {
+    for (x in 0 until context.width) {
+        for (y in 0 until context.height) {
+            val location = Location(x, y)
+            if (context.isObstacle(location)) {
+                context.knownLocations[location] = CellType.OBSTACLE
+            } else if (context.taskLocations.contains(location)) {
+                context.knownLocations[location] = CellType.TASK
+            } else {
+                context.knownLocations[location] = CellType.EMPTY
+            }
+        }
+    }
 }
 
 fun generateObstacles(mapSize: Pair<Int, Int>, rng: Random): List<Obstacle> {
@@ -49,7 +67,7 @@ fun generateObstacles(mapSize: Pair<Int, Int>, rng: Random): List<Obstacle> {
     return obstacles
 }
 
-fun generateTasks(mapSize: Pair<Int, Int>, numTasks: Int, rng: Random, obstacles: List<Obstacle>): List<Task> {
+fun generateTasks(mapSize: Pair<Int, Int>, numTasks: Int, rng: Random, context: Context): List<Task> {
     val tasks = mutableListOf<Task>()
     for (i in 0 until numTasks) {
         var x: Int
@@ -59,12 +77,12 @@ fun generateTasks(mapSize: Pair<Int, Int>, numTasks: Int, rng: Random, obstacles
             x = rng.nextInt(mapSize.first)
             y = rng.nextInt(mapSize.second)
             location = Location(x, y)
-        } while (obstacles.any { it.isPointObstacle(location) })
+        } while (context.isObstacle(location))
 
         tasks.add(Task(
             id = i,
-            workload = 1.0,
-            referencePosition = location,
+            workload = rng.nextDouble() * 4 + 1.0,
+            location = location,
             actionType = Action.WORK,
             assignedRobots = mutableListOf(),
             dependencies = mutableListOf()
@@ -97,28 +115,27 @@ fun generateRobots(numRobots: Int, context: Context, rng: Random): List<Robot> {
             x = rng.nextInt(context.width)
             y = rng.nextInt(context.height)
             location = Location(x, y)
-        } while (context.isObstacle(location))
+        } while (context.knownLocations[location] == CellType.OBSTACLE)
 
-        robots.add(Robot(
+        val robot = Robot(
             id = i,
-            movementCapabilities = MovementCapability(
-                payloadWeight = 1.0,
-                maxSpeed = rng.nextDouble()
-            ),
-            battery = Battery(
-                capacity = 1.0,
-                rechargeTime = 1.0
-            ),
+            movementCapabilities = MovementCapability(0.0, 0.0),
+            battery = Battery(100.0),
             devices = listOf(
-                Device(
-                    id = UUID.randomUUID(),
-                    name = "Arm",
-                    supportedActions = listOf(Action.WORK)
+                LIDAR(
+                    detectionRange = 5.0
+                ),
+                Arm(
+                    workingSpeed = 1.0
                 )
             ),
+            location = location,
             home = location,
-            currentLocation = location
-        ))
+            status = Status.IDLE,
+            task = null
+        )
+
+        robots.add(robot)
     }
     return robots
 }
