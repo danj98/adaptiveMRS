@@ -86,34 +86,27 @@ class Environment(val mission: Mission, val robots: List<Robot>, initialContext:
     fun getCurrentState(): State {
         return state
     }
+}
 
-    fun getAvailableActions(state: State): List<Action> {
-        val availableRobots = state.robots.filter { it.status == Status.IDLE }
-        val availableTasks = state.mission.tasks.filter { task ->
-            !task.isComplete &&
-                    task.dependencies.all { dependency ->
-                        dependency.from?.isComplete ?: true
-                    } &&
-                    availableRobots.any { robot ->
-                        robot.devices.all { device ->
-                            device.supportedActions.any { action ->
-                                action == task.actionType
-                            }
-                        }
-                    }
-        }
-        return availableRobots.flatMap { robot ->
-            availableTasks.map { task ->
-                Action(robotIndex = state.robots.indexOf(robot), taskIndex = state.mission.tasks.indexOf(task))
-            }
-        }
+fun updateQTable(qTable: MutableMap<StateActionFeature, Double>, iterations: Int) {
+    // Update q-values with the reward of -iterations if it is higher than the current value
+    qTable.forEach { (stateAction, value) ->
+        qTable[stateAction] = maxOf(value, -iterations.toDouble())
     }
+}
 
-    fun performAction(state: State, action: Action): Pair<State, Double> {
-        val robot = state.robots[action.robotIndex]
-        val task = state.mission.tasks[action.taskIndex]
-        robot.task = task
-        task.assignedRobots.add(robot)
-        return state to 0.0
+/*
+ * Each run is an episode. When an episode is done (all tasks are complete), the q-table is updated (if necessary).
+ * The same q-table is then used for the next episode.
+ */
+fun trainQTable(episodes: Int): MutableMap<StateActionFeature, Double> {
+    val qTable = mutableMapOf<StateActionFeature, Double>()
+    for (i in 0 until episodes) {
+        val (context, mission, robots) = generateMission(100 to 100, 50, 10)
+        val env = Environment(mission, robots, context)
+        val iterations = env.run(qTable)
+        updateQTable(qTable, iterations)
+        println("Episode $i: $iterations iterations")
     }
+    return qTable
 }
