@@ -12,15 +12,28 @@ data class Context (
     val taskLocations: List<Location>
 ) {
     fun isObstacle(location: Location): Boolean {
-        for (obstacle in obstacles) {
-            if (location.x >= obstacle.shell[0].x && location.x <= obstacle.shell[2].x) {
-                if (location.y >= obstacle.shell[0].y && location.y <= obstacle.shell[2].y) {
-                    return true
-                }
+        obstacles.forEach { obstacle ->
+            if (isPointInsidePolygon(location, obstacle.shell)) {
+                return true
             }
         }
         return false
     }
+
+    private fun isPointInsidePolygon(point: Location, vertices: List<Location>): Boolean {
+        var count = 0
+        var i = 0
+        var j = vertices.size - 1
+        while (i < vertices.size) {
+            if ((vertices[i].y > point.y) != (vertices[j].y > point.y) &&
+                (point.x < (vertices[j].x - vertices[i].x) * (point.y - vertices[i].y) / (vertices[j].y - vertices[i].y) + vertices[i].x)) {
+                count++
+            }
+            j = i++
+        }
+        return count % 2 != 0
+    }
+
 
     fun isKnownTask(location: Location): Boolean {
         return knownLocations[location] == CellType.TASK
