@@ -12,29 +12,35 @@ import kotlin.math.sqrt
 
 class Robot (
     val id: Int,
-    val movementCapabilities: MovementCapability,
+    val movementCapabilities: MovementCapability = MovementCapability(0.0, 0.0),
     val battery: Battery,
     val devices: List<Device>,
-    var currentLocation: Location,
+    var location: Location,
     val home: Location,
     var status: Status = Status.IDLE,
     var task: Task? = null,
     private var path: List<Location> = listOf(),
+    var beingAssigned: Boolean = false,
 ) {
     fun execute(context: Context) {
+        if (battery.level <= 0) {
+            status = Status.RECHARGING
+        }
+
         when (status) {
             Status.IDLE -> prepareForTask(context)
             Status.MOVING -> moveToNextLocation(context)
             Status.WORKING -> performTaskAction()
+            Status.RECHARGING -> recharge(context)
         }
     }
 
     private fun isWithinOneCellOf(taskLocation: Location): Boolean {
-        return abs(currentLocation.x - taskLocation.x) <= 1 && abs(currentLocation.y - taskLocation.y) <= 1
+        return abs(location.x - taskLocation.x) <= 1 && abs(location.y - taskLocation.y) <= 1
     }
 
     private fun moveTo(target: Location) {
-        currentLocation = target
+        location = target
     }
 
     /*
@@ -43,30 +49,49 @@ class Robot (
      */
     private fun prepareForTask(context: Context) {
         if (task == null) return
-        path = aStar(currentLocation, task!!.referencePosition, context)
+        path = aStar(location, task!!.location, context)
         status = Status.MOVING
     }
 
     private fun moveToNextLocation(context: Context) {
-        if (path.isNotEmpty()) {
-            val nextStep = path.first()
-            moveTo(nextStep)
-            path = path.drop(1)
-            // If the robot is equipped with a lidar, it scans the environment
-            if (devices.any { it is LIDAR }) {
-                devices.filterIsInstance<LIDAR>().forEach { it.execute(currentLocation, context) }
+        if (path.isEmpty()) {
+            path = aStar(location, task!!.location, context)
+            if (path.isEmpty()) {
+                status = Status.IDLE
+                return
             }
         }
-        if (task != null && isWithinOneCellOf(task!!.referencePosition)) {
+        val nextStep = path.first()
+        location = nextStep
+        path = path.drop(1)
+        battery.level -= movementCapabilities.movementCost
+        // If the robot is equipped with a lidar, it scans the environment
+        if (devices.any { it is LIDAR }) {
+            devices.filterIsInstance<LIDAR>().forEach { it.execute(location, context) }
+        }
+        if (task != null && isWithinOneCellOf(task!!.location)) {
             status = Status.WORKING
         }
     }
 
     private fun performTaskAction() {
+        task?.workload = (task?.workload ?: 0.0) - devices.filterIsInstance<Arm>().first().workingSpeed
+        battery.level -= devices.filterIsInstance<Arm>().first().workingCost
         if ((task?.workload ?: 0.0) <= 0) {
             task?.isComplete = true
             task = null
             status = Status.IDLE
+        }
+    }
+
+    private fun recharge(context: Context) {
+        if (path.isEmpty() || path.last() != home) path = aStar(location, home, context)
+        if (location == home) {
+            battery.level = battery.capacity
+            task = null
+            status = Status.IDLE
+        } else {
+            moveToNextLocation(context)
         }
     }
 }
@@ -74,12 +99,12 @@ class Robot (
 class MovementCapability (
     val payloadWeight: Double,
     val maxSpeed: Double,
+    val movementCost: Double = 1.0,
 )
 
 class Battery (
-    val level: Double = 1.0,
-    val capacity: Double,
-    val rechargeTime: Double,
+    var level: Double = 100.0,
+    val capacity: Double = 100.0,
 )
 
 open class Device (
@@ -94,6 +119,7 @@ open class Device (
 
 class Arm (
     val workingSpeed: Double,
+    val workingCost: Double = 5.0,
 ) : Device(
     id = UUID.randomUUID(),
     name = "Arm",
@@ -146,24 +172,6 @@ enum class Action {
 enum class Status {
     IDLE,
     MOVING,
-    WORKING
-}
-
-interface DeviceAction {
-    fun execute(robot: Robot, context: Context)
-}
-
-class LIDARAction(
-    private val detectionRange: Int
-) : DeviceAction {
-    override fun execute(robot: Robot, context: Context) {
-
-    }
-}
-
-class ArmAction(
-    private val workingSpeed: Int
-) : DeviceAction {
-    override fun execute(robot: Robot, context: Context) {
-    }
+    WORKING,
+    RECHARGING,
 }
