@@ -18,3 +18,13 @@ data class TaskDependency(
     val from: Task?,
     val to: Task?
 )
+
+class TaskAssignment(private val task: Task, private val assignedRobots: MutableList<Robot> = mutableListOf()) {
+    fun getTaskLocationForRobot(robot: Robot): Location {
+        return if (assignedRobots.contains(robot)) {
+            task.location
+        } else {
+            Location()
+        }
+    }
+}
