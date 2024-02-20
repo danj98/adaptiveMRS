@@ -46,14 +46,41 @@ class Environment(val mission: Mission, val robots: List<Robot>, initialContext:
     }
     */
 
-    fun run() {
+    fun run(qTable: MutableMap<StateActionFeature, Double> = mutableMapOf()): Int {
         println("Starting...")
-        while (state.mission.tasks.any { !it.isComplete }) {
-            step()
-            //Thread.sleep(500)
+        while (mission.tasks.any { !it.isComplete }) {
+            // For each idle robot
+            val idleRobots = robots.filter { it.status == Status.IDLE }
+            idleRobots.forEach { robot ->
+                robot.beingAssigned = true
+                // Q-learning based task assignment
+                val (stateAction, task) = QLearningTaskAssigner(state, qTable)
+                // Random task assignment
+                // val task = randomTaskAssignment(availableTasks = state.mission.tasks.filter { !it.isComplete })
+                // Market-based task assignment
+                // state = marketBasedAssignment(this)
+
+                robot.task = task
+                robot.status = Status.MOVING
+                robot.beingAssigned = false
+                // If the stateAction does not exist in the qTable, add it with default value 0.0
+                if (!qTable.containsKey(stateAction)) {
+                    qTable[stateAction] = 0.0
+                }
+            }
+            while (robots.any { it.status != Status.IDLE }) {
+                robots.forEach { robot ->
+                    robot.execute(state.context)
+                }
+                state.mission.tasks.forEach { task ->
+                    if (task.workload <= 0) {
+                        task.isComplete = true
+                    }
+                }
+                iterations++
+            }
         }
-        println("Mission complete")
-        println("Iterations used: $iterations")
+        return iterations
     }
 
     fun getCurrentState(): State {
