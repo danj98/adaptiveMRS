@@ -12,16 +12,7 @@ data class State(
     val mission: Mission
 )
 
-data class Action (
-    val robotIndex: Int,
-    val taskIndex: Int
-)
 
-// Represents the assignment of tasks to robots
-data class TaskAssignment(
-    val task: Task,
-    var assignedRobot: Robot? = null
-)
 
 class Environment(val mission: Mission, val robots: List<Robot>, initialContext: Context) {
     private var iterations = 0
@@ -31,6 +22,7 @@ class Environment(val mission: Mission, val robots: List<Robot>, initialContext:
         mission = mission
     )
 
+    /*
     private fun step() {
         if (state.mission.tasks.all { it.isComplete }) {
             return
@@ -52,6 +44,7 @@ class Environment(val mission: Mission, val robots: List<Robot>, initialContext:
         }
         iterations++
     }
+    */
 
     fun run() {
         println("Starting...")
