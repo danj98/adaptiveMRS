@@ -6,7 +6,7 @@ import adaptiveMRS.utility.Location
 
 data class Task (
     val id: Int,
-    val referencePosition: Location,
+    val location: Location,
     var workload: Double,
     val assignedRobots: MutableList<Robot>,
     val dependencies: MutableList<TaskDependency>,
