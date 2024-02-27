@@ -103,6 +103,11 @@ fun aStar(from: Location, to: Location, context: Context): List<Location> {
             return generatePath(currentNode)
         }
 
+        // If more than 1000 nodes are expanded, the algorithm is stopped
+        if (closedList.size > 1000) {
+            return emptyList()
+        }
+
         openList.remove(currentNode)
         closedList.add(currentNode)
 
