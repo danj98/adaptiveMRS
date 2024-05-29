@@ -6,89 +6,87 @@ import adaptiveMRS.mission.Task
 import adaptiveMRS.robot.Robot
 import adaptiveMRS.robot.Status
 import adaptiveMRS.utility.Location
-import adaptiveMRS.utility.aStar
 import adaptiveMRS.utility.euclideanDistance
+import kotlinx.serialization.Serializable
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlin.random.Random
 
-fun QLearningTaskAssigner(state: State, qTable: Map<StateActionFeature, Double>): Pair<StateActionFeature, Task> {
-    // encode current state
+fun QLearningTaskAssigner(state: State, qTable: Map<StateAction, Double>): Pair<StateAction, Task> {
     val encodedState = encodeState(state)
-    // Select action to use
     val action = selectAction(qTable, encodedState)
-    // Use action to select task
-    return Pair(StateActionFeature(encodedState, action) , selectTask(state, action))
+    val task = selectTask(state, action)
+    return Pair(StateAction(encodedState, action), task)
 }
 
 fun encodeState(state: State): List<Double> {
     val encodedState = mutableListOf<Double>()
-    // Add normalized task positions
-    for (task in state.mission.tasks) {
-        encodedState.add(task.location.x.toDouble() / state.context.width)
-        encodedState.add(task.location.y.toDouble() / state.context.height)
-    }
-    // Add normalized task workload
-    val maxWorkload = state.mission.tasks.maxOf { it.workload }
-    for (task in state.mission.tasks) {
-        encodedState.add(task.workload / maxWorkload)
-    }
-    // Add normalized number of task dependencies
-   val maxDependencies = state.mission.tasks.maxOf { it.dependencies.size }
-    for (task in state.mission.tasks) {
-        encodedState.add(task.dependencies.size.toDouble() / maxDependencies)
-    }
-    // Add normalized number of assigned robots
-    val maxAssignedRobots = state.mission.tasks.maxOf { it.assignedRobots.size }
-    for (task in state.mission.tasks) {
-        encodedState.add(task.assignedRobots.size.toDouble() / maxAssignedRobots)
-    }
 
-    // Add normalized robot positions
-    for (robot in state.robots) {
-        encodedState.add(robot.location.x.toDouble() / state.context.width)
-        encodedState.add(robot.location.y.toDouble() / state.context.height)
+    val robot = state.robots.filter { it.beingAssigned }[0]
+    // Robot normalized x and y
+    val normalizedX = (robot.location.x.toDouble() / state.context.width).round(1)
+    val normalizedY = (robot.location.y.toDouble() / state.context.height).round(1)
+    encodedState.add(normalizedX)
+    encodedState.add(normalizedY)
+
+
+    // Robot normalized battery level
+    encodedState.add((robot.battery.level / robot.battery.capacity).round(1))
+
+    // Average distance of three closest tasks, bucketed into intervals of 0.1
+    val availableTasks = state.mission.tasks.filter { !it.isComplete }
+    val closestTasks = availableTasks.sortedBy { euclideanDistance(robot.location, it.location) }.take(3)
+    val averageDistance = closestTasks.map { euclideanDistance(robot.location, it.location) }.average()
+    val maxDistance = sqrt(state.context.width.toDouble().pow(2) + state.context.height.toDouble().pow(2))
+    val bucketedDistance = ((averageDistance / maxDistance) * 10).toInt().toDouble() / 10
+    encodedState.add(bucketedDistance)
+
+    // Average workload of three closest tasks
+    val averageWorkload = closestTasks.map { it.workload }.average()
+    encodedState.add((averageWorkload / 5.0).round(1))
+
+    // Total number of dependencies of three closest tasks
+    val totalDependencies = closestTasks.sumBy { it.dependencies.size }
+    encodedState.add(totalDependencies.toDouble())
+
+    // Number of robots within 1/3 of the map size
+    val robotsWithinRange = state.robots.filter { robot ->
+        euclideanDistance(robot.location, Location(state.context.width / 2, state.context.height / 2)) <=
+                sqrt(state.context.width.toDouble().pow(2) + state.context.height.toDouble().pow(2)) / 3
     }
-    // Add normalized robot status
-    for (robot in state.robots) {
-        encodedState.add(when (robot.status) {
-            Status.IDLE -> 0.0
-            Status.MOVING -> 0.5
-            Status.WORKING -> 1.0
-            Status.RECHARGING -> 0.0
-        })
-    }
-    // Add normalized robot battery level
-    for (robot in state.robots) {
-        encodedState.add(robot.battery.level / robot.battery.capacity)
-    }
-    // Add normalized robot distance to tasks
-    val diagonal = sqrt(state.context.width.toDouble().pow(2) + state.context.height.toDouble().pow(2))
-    for (robot in state.robots) {
-        for (task in state.mission.tasks) {
-            val distance = euclideanDistance(robot.location, task.location)
-            encodedState.add(distance / diagonal)
-        }
-    }
-    // Add if robot is being assigned
-    for (robot in state.robots) {
-        encodedState.add(if (robot.beingAssigned) 1.0 else 0.0)
-    }
+    encodedState.add(robotsWithinRange.size.toDouble())
+
+    // Normalized number of tasks currently being executed
+    val tasksBeingExecuted = state.robots.filter { it.status == Status.WORKING }.size
+    encodedState.add(tasksBeingExecuted.toDouble() / state.mission.tasks.size)
+
+    // Normalized number of tasks pending assignment
+    val tasksPendingAssignment = state.mission.tasks.filter { !it.isComplete && it.assignedRobots.isEmpty() }.size
+    encodedState.add((tasksPendingAssignment.toDouble() / state.mission.tasks.size).round(1))
+
     return encodedState
 }
 
-data class StateActionFeature(val features: List<Double>, val action: Int)
+@Serializable
+data class StateAction(val state: List<Double>, val action: Int)
 
-fun selectAction(qTable: Map<StateActionFeature, Double>, stateVector: List<Double>): Int {
-    // Epsilon greedy strategy
-    val epsilon = 0.1
-    val randomValue = Math.random()
-    val actionRange = 0..5
-    return if (randomValue < epsilon) {
-        actionRange.random()
+// If random is less than epsilon, return a random action, otherwise return the action with the highest Q-value in the current state
+fun selectAction(qTable: Map<StateAction, Double>, stateVector: List<Double>, epsilon: Double = 0.1): Int {
+    return if (Random.nextDouble() < epsilon) {
+        Random.nextInt(0, 6)
     } else {
-        actionRange.maxByOrNull { action ->
-            qTable.getOrDefault(StateActionFeature(stateVector, action), 0.0)
-        } ?: actionRange.random()
+        val qValues = (0..5).map { action ->
+            qTable.getOrDefault(StateAction(stateVector, action), 0.0)
+        }
+        val maxQValue = qValues.maxOrNull() ?: 0.0
+        val maxQValueActions = (0..5).filter { action ->
+            qTable.getOrDefault(StateAction(stateVector, action), 0.0) == maxQValue
+        }
+        if (maxQValue == 0.0 && maxQValueActions.size == 6) {
+            Random.nextInt(0, 6)
+        } else {
+            maxQValueActions.random()
+        }
     }
 }
 
@@ -109,4 +107,41 @@ fun selectTask(state: State, action: Int): Task {
             tasks.random()
         }
     }
+}
+
+fun updateQtable(qTable: MutableMap<StateAction, Double>, currentStateAction: StateAction, reward: Double) {
+    val learningRate = 0.1
+    val discountFactor = 0.9
+    val maxFutureQ = qTable.values.maxOrNull() ?: 0.0
+    val oldQValue = qTable.getOrDefault(currentStateAction, 0.0)
+    val newQValue = oldQValue + learningRate * (reward + discountFactor * maxFutureQ - oldQValue)
+    qTable[currentStateAction] = newQValue
+}
+
+
+// Trains the Q-learning algorithm for a given number of episodes
+fun trainQTable(episodes: Int, qTable: MutableMap<StateAction, Double>) {
+
+
+    for (episode in 1..episodes) {
+        val generator = MissionGenerator(Pair(100, 100), 50, 10)
+        val (context, mission, robots) = generator.generate()
+        val env = Environment(mission, robots, context, "qLearning", qTable)
+        val (iterations, stateActionsDuringMission) = env.run()
+        val reward = -iterations.toDouble()
+        stateActionsDuringMission.forEach { stateAction ->
+            updateQtable(qTable, stateAction, reward)
+        }
+        if (episode % 100 == 0) {
+            println("Episode $episode completed")
+            //println("Q-keys: ${qTable.keys}")
+        }
+        println("Finished episode $episode")
+    }
+}
+
+fun Double.round(decimals: Int): Double {
+    var multiplier = 1.0
+    repeat(decimals) { multiplier *= 10 }
+    return kotlin.math.round(this * multiplier) / multiplier
 }

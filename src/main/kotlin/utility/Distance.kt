@@ -4,6 +4,7 @@ import adaptiveMRS.mission.CellType
 import adaptiveMRS.mission.Context
 import kotlin.math.abs
 import kotlin.math.pow
+import java.util.PriorityQueue
 
 fun distance(from: Location, to: Location, context: Context): Int {
     return aStar(from, to, context).size
@@ -92,41 +93,54 @@ fun euclideanDistance(from: Location, to: Location): Double {
  */
 
 fun aStar(from: Location, to: Location, context: Context): List<Location> {
-    val openList = mutableListOf<Node>()
-    val closedList = mutableListOf<Node>()
+    if (context.knownLocations[from] == CellType.OBSTACLE || context.knownLocations[to] == CellType.OBSTACLE) {
+        println("Start or end location is blocked.")
+        return emptyList()
+    }
+
+    val openList = PriorityQueue(compareBy<Node> { it.f })
+    val closedSet = mutableSetOf<Location>()
     val startNode = Node(from, g = 0, h = heuristic(from, to))
     openList.add(startNode)
 
     while (openList.isNotEmpty()) {
-        val currentNode = openList.minByOrNull { it.f } ?: break
+        val currentNode = openList.poll()
         if (currentNode.location == to) {
             return generatePath(currentNode)
         }
 
-        // If more than 1000 nodes are expanded, the algorithm is stopped
-        if (closedList.size > 1000) {
-            return emptyList()
-        }
+        closedSet.add(currentNode.location)
 
-        openList.remove(currentNode)
-        closedList.add(currentNode)
+        getNeighbors(currentNode, context).forEach { neighbor ->
+            if (neighbor.location in closedSet) return@forEach
+            val tentativeG = currentNode.g + distance(currentNode.location, neighbor.location)
 
-        getNeighbors(currentNode, context, to).forEach { neighbor ->
-            if (neighbor.location in closedList.map { it.location }) return@forEach
-            val tentativeG = currentNode.g + 1
-
-            val existingNode = openList.find { it.location == neighbor.location }
-            if (existingNode == null || tentativeG < existingNode.g) {
+            if (openList.none { it.location == neighbor.location && tentativeG >= it.g }) {
                 neighbor.parent = currentNode
                 neighbor.g = tentativeG
                 neighbor.h = heuristic(neighbor.location, to)
-                if (existingNode == null) {
-                    openList.add(neighbor)
-                }
+                openList.add(neighbor)
             }
         }
     }
     return emptyList()
+}
+
+fun distance(from: Location, to: Location): Int {
+    return if (from.x != to.x && from.y != to.y) 14 else 10  // Approximation of sqrt(2) * 10 for diagonals
+}
+
+fun getNeighbors(node: Node, context: Context): List<Node> {
+    val directions = listOf(
+        Location(1, 0), Location(0, 1), Location(-1, 0), Location(0, -1),
+        Location(1, 1), Location(-1, 1), Location(1, -1), Location(-1, -1)
+    )
+    return directions.mapNotNull { dir ->
+        val newLoc = Location(node.location.x + dir.x, node.location.y + dir.y)
+        if (newLoc.x in 0 until context.width && newLoc.y in 0 until context.height && !context.isKnownObstacle(newLoc)) {
+            Node(newLoc, h = heuristic(newLoc, node.location))
+        } else null
+    }
 }
 
 fun heuristic(from: Location, to: Location): Int {
@@ -141,17 +155,4 @@ fun generatePath(node: Node): List<Location> {
         current = current.parent
     }
     return path
-}
-
-fun getNeighbors(node: Node, context: Context, to: Location): List<Node> {
-    val directions = listOf(
-        Location(1, 0), Location(0, 1), Location(-1, 0), Location(0, -1),
-        Location(1, 1), Location(-1, 1), Location(1, -1), Location(-1, -1)
-    )
-    return directions.mapNotNull { dir ->
-        val newLoc = Location(node.location.x + dir.x, node.location.y + dir.y)
-        if (newLoc.x in 0 until context.width && newLoc.y in 0 until context.height && !context.isKnownObstacle(newLoc)) {
-            Node(newLoc, h = heuristic(newLoc, to))
-        } else null
-    }
 }

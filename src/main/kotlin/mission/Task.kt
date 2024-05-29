@@ -11,8 +11,25 @@ data class Task (
     val assignedRobots: MutableList<Robot>,
     val dependencies: MutableList<TaskDependency>,
     var isComplete: Boolean = false,
-    val actionType: Action
-)
+    val actionType: Action,
+    var timesAssigned: Int = 0
+) {
+    companion object {
+        fun deepCopy(task: Task): Task {
+            val assignedRobots = task.assignedRobots.map { it }
+            val dependencies = task.dependencies.map { TaskDependency(it.from, it.to) }
+            return Task(
+                task.id,
+                task.location,
+                task.workload,
+                assignedRobots.toMutableList(),
+                dependencies.toMutableList(),
+                task.isComplete,
+                task.actionType
+            )
+        }
+    }
+}
 
 data class TaskDependency(
     val from: Task?,

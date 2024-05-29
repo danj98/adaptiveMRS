@@ -2,15 +2,55 @@ package adaptiveMRS.mission
 
 import adaptiveMRS.utility.Location
 import java.util.UUID
+import kotlin.math.pow
 
-data class Context (
-    val id: UUID,
+class Context private constructor(
+    val id: Int,
     val width: Int,
     val height: Int,
-    val obstacles: List<Obstacle>,
+    val obstacles: MutableList<Obstacle>,
     val knownLocations: MutableMap<Location, CellType>,
     val taskLocations: List<Location>
 ) {
+
+    companion object {
+        @Volatile private var INSTANCE: Context? = null
+
+        fun getInstance(
+            id: Int,
+            width: Int,
+            height: Int,
+            obstacles: MutableList<Obstacle>,
+            knownLocations: MutableMap<Location, CellType>,
+            taskLocations: List<Location>
+        ) : Context {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: Context(id, width, height, obstacles, knownLocations, taskLocations).also { INSTANCE = it }
+            }
+        }
+
+        fun create(
+            id: Int,
+            width: Int,
+            height: Int,
+            obstacles: MutableList<Obstacle>,
+            knownLocations: MutableMap<Location, CellType>,
+            taskLocations: List<Location>
+        ): Context {
+            return Context(id, width, height, obstacles, knownLocations, taskLocations)
+        }
+
+        fun deepCopy(context: Context): Context {
+            val obstacles = context.obstacles.map { Obstacle(it.shell.toMutableList()) }.toMutableList()
+            val knownLocations = mutableMapOf<Location, CellType>()
+            context.knownLocations.forEach { (location, cellType) ->
+                knownLocations[Location(location.x, location.y)] = cellType
+            }
+            val taskLocations = context.taskLocations.map { Location(it.x, it.y) }
+            return Context(context.id, context.width, context.height, obstacles, knownLocations, taskLocations)
+        }
+    }
+
     fun isObstacle(location: Location): Boolean {
         obstacles.forEach { obstacle ->
             if (isPointInsidePolygon(location, obstacle.shell)) {
@@ -34,7 +74,6 @@ data class Context (
         return count % 2 != 0
     }
 
-
     fun isKnownTask(location: Location): Boolean {
         return knownLocations[location] == CellType.TASK
     }
@@ -42,14 +81,18 @@ data class Context (
     fun isKnownObstacle(location: Location): Boolean {
         return knownLocations[location] == CellType.OBSTACLE
     }
+
+    fun deepCopy(): Context {
+        return deepCopy(this)
+    }
 }
 
 open class Area (
-    val shell: List<Location>
+    val shell: MutableList<Location>
 )
 
 class Obstacle (
-    shell: List<Location>
+    shell: MutableList<Location>
 ) : Area(shell) {
 
     fun isPointObstacle(location: Location): Boolean {

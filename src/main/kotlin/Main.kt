@@ -3,39 +3,70 @@ package adaptiveMRS
 import adaptiveMRS.mission.Context
 import adaptiveMRS.mission.Mission
 import adaptiveMRS.mission.Task
-import adaptiveMRS.mission.TaskDependency
 import adaptiveMRS.robot.*
-import adaptiveMRS.simulation.Environment
-import adaptiveMRS.simulation.StateActionFeature
-import adaptiveMRS.simulation.generateMission
-import adaptiveMRS.simulation.trainQTable
-import adaptiveMRS.utility.Location
+import adaptiveMRS.simulation.*
 import java.util.*
+import kotlinx.serialization.*
 
 fun main() {
+    val numMissions = 10
+    val trainingCycles = 10
+    val missionsPerTraining = 1000
+    val qTable = mutableMapOf<StateAction, Double>()
 
-    var context: Context
-    var robots: List<Robot>
-    var mission: Mission
+    val methods = listOf("random", "market", "qLearning")
 
-    val seed = 123L
+    val averageScores = mutableMapOf<String, MutableList<Int>>()
 
-    generateMission(100 to 100, 50, 10).let {
-        context = it.first
-        mission = it.second
-        robots = it.third
+    methods.forEach { method ->
+        averageScores[method] = mutableListOf()
     }
 
-    val env = Environment(
-        robots = robots,
-        mission = mission,
-        initialContext = context
-    )
+    // Initial results
+    runMissions(methods, numMissions, qTable, averageScores)
 
-    var qTable = mutableMapOf<StateActionFeature, Double>()
+    methods.forEach { method ->
+        val avgScore = averageScores[method]?.average() ?: 0.0
+        println("Method: ${method}, Average Score: $avgScore")
+    }
 
-    //env.run()
-    qTable = trainQTable(1000)
-    val its = env.run(qTable)
-    println("Iterations: $its")
+    for (cycle in 1..trainingCycles) {
+        trainQTable(missionsPerTraining, qTable)
+
+        averageScores.forEach { (_, scores) -> scores.clear() }
+
+        runMissions(methods, numMissions, qTable, averageScores)
+
+        println("After cycle $cycle")
+        methods.forEach { method ->
+            val avgScore = averageScores[method]?.average() ?: 0.0
+            println("Method: ${method}, Average Score: $avgScore")
+        }
+    }
 }
+
+fun runMissions(
+    methods: List<String>,
+    numMissions: Int,
+    qTable: MutableMap<StateAction, Double>,
+    averageScores: MutableMap<String, MutableList<Int>>
+) {
+
+    for (i in 1..numMissions) {
+        val generator = MissionGenerator(Pair(100, 100), 50, 10)
+        val (c, mis, robs) = generator.generate()
+
+        methods.forEach { method ->
+            val missionCopy = mis.deepCopy()
+            val robotsCopy = robs.map { it.copy() }
+            val contextCopy = c.deepCopy()
+
+            val env = Environment(missionCopy, robotsCopy, contextCopy, method, qTable)
+            val (iterations, _) = env.run()
+            averageScores[method]?.add(iterations)
+            //generator.printMap(contextCopy)
+        }
+    }
+}
+
+

@@ -10,7 +10,7 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class Robot (
+data class Robot (
     val id: Int,
     val movementCapabilities: MovementCapability = MovementCapability(0.0, 0.0),
     val battery: Battery,
@@ -23,9 +23,16 @@ class Robot (
     var beingAssigned: Boolean = false,
 ) {
     fun execute(context: Context) {
-        if (battery.level <= 0) {
-            status = Status.RECHARGING
+        status = if (battery.level <= 0) {
+            Status.RECHARGING
+        } else if (task == null) {
+            Status.IDLE
+        } else if (isWithinOneCellOf(task!!.location)) {
+            Status.WORKING
+        } else {
+            Status.MOVING
         }
+        //println("Status of robot ${id} is ${status}.")
 
         when (status) {
             Status.IDLE -> prepareForTask(context)
@@ -43,20 +50,20 @@ class Robot (
         location = target
     }
 
-    /*
-     * Does nothing if the robot has no tasks assigned.
-     * When the robot has an assigned task, its status changes to moving.
-     */
     private fun prepareForTask(context: Context) {
-        if (task == null) return
+        if (task == null) {
+            return
+        }
         path = aStar(location, task!!.location, context)
         status = Status.MOVING
     }
+
 
     private fun moveToNextLocation(context: Context) {
         if (path.isEmpty()) {
             path = aStar(location, task!!.location, context)
             if (path.isEmpty()) {
+                println("---------------No path found!!!")
                 status = Status.IDLE
                 return
             }
@@ -99,7 +106,7 @@ class Robot (
 class MovementCapability (
     val payloadWeight: Double,
     val maxSpeed: Double,
-    val movementCost: Double = 1.0,
+    val movementCost: Double = .5,
 )
 
 class Battery (
@@ -119,7 +126,7 @@ open class Device (
 
 class Arm (
     val workingSpeed: Double,
-    val workingCost: Double = 5.0,
+    val workingCost: Double = 3.0,
 ) : Device(
     id = UUID.randomUUID(),
     name = "Arm",
