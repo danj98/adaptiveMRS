@@ -26,20 +26,24 @@ fun marketBasedAssignment(state: State): Task {
     if (suitableTasks.isEmpty()) throw IllegalStateException("No suitable tasks for robot $robot")
 
     val taskBids = suitableTasks.map { task ->
-        val distanceScore = 1.0 - (task.location.euclideanDistanceTo(robot!!.location) / (sqrt(state.context.width.toDouble().pow(2) + state.context.height.toDouble().pow(2))))
+        val distance = task.location.euclideanDistanceTo(robot!!.location)
+        val maxDistance = sqrt(state.context.width.toDouble().pow(2) + state.context.height.toDouble().pow(2))
+
+        val distanceScore = 1.0 - (distance / maxDistance)
         val workloadScore = 1 / task.workload
-        val urgencyScore = task.dependencies.size.toDouble()
+        val urgencyScore = if (task.dependencies.isEmpty()) 1.0 else 2.0
         val allocationScore = task.assignedRobots.size.toDouble() / state.robots.size
 
-        val aggregatedScore = distanceScore + workloadScore + urgencyScore - allocationScore
+        val aggregatedScore = (distanceScore*3 + workloadScore*0.5 + urgencyScore*1 - allocationScore*4)
 
         Pair(task, aggregatedScore)
     }
+
     return weightedRandomSelection(taskBids)
 }
 
 fun weightedRandomSelection(taskBids: List<Pair<Task, Double>>): Task {
-    val totalScore = taskBids.sumByDouble { it.second }
+    val totalScore = taskBids.sumOf { it.second }
     val randomValue = Math.random() * totalScore
     var currentScore = 0.0
     taskBids.forEach { (task, score) ->
