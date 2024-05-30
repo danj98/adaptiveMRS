@@ -70,7 +70,6 @@ fun encodeState(state: State): List<Double> {
 @Serializable
 data class StateAction(val state: List<Double>, val action: Int)
 
-// If random is less than epsilon, return a random action, otherwise return the action with the highest Q-value in the current state
 fun selectAction(qTable: Map<StateAction, Double>, stateVector: List<Double>, epsilon: Double = 0.1): Int {
     return if (Random.nextDouble() < epsilon) {
         Random.nextInt(0, 6)
@@ -100,7 +99,7 @@ fun selectTask(state: State, action: Int): Task {
         1 -> workloadAction(currentRobot, availableTasks, context)
         2 -> workingSpeedAction(currentRobot, availableTasks, context)
         3 -> dependenciesAction(currentRobot, availableTasks, context)
-        4 -> noRobotsAction(currentRobot, availableTasks, context)
+        4 -> fewestRobotsAction(currentRobot, availableTasks, context)
         5 -> homeLocationAction(currentRobot, availableTasks, context)
         else -> {
             val tasks = state.mission.tasks.filter { !it.isComplete }
@@ -117,8 +116,6 @@ fun updateQtable(qTable: MutableMap<StateAction, Double>, currentStateAction: St
     val newQValue = oldQValue + learningRate * (reward + discountFactor * maxFutureQ - oldQValue)
     qTable[currentStateAction] = newQValue
 }
-
-
 
 fun trainQTable(episodes: Int, qTable: MutableMap<StateAction, Double>, batch_size: Int = 10) {
     var batch = mutableListOf<Pair<StateAction, Double>>()
@@ -146,7 +143,6 @@ fun trainQTable(episodes: Int, qTable: MutableMap<StateAction, Double>, batch_si
         println("Finished episode $episode")
     }
 
-    // Process any remaining batch items
     batch.forEach { (sa, r) ->
         updateQtable(qTable, sa, r)
     }
@@ -157,3 +153,4 @@ fun Double.round(decimals: Int): Double {
     repeat(decimals) { multiplier *= 10 }
     return kotlin.math.round(this * multiplier) / multiplier
 }
+
