@@ -72,10 +72,18 @@ data class Robot (
         location = nextStep
         path = path.drop(1)
         battery.level -= movementCapabilities.movementCost
-        // If the robot is equipped with a lidar, it scans the environment
-        if (devices.any { it is LIDAR }) {
-            devices.filterIsInstance<LIDAR>().forEach { it.execute(location, context) }
+
+        devices.filterIsInstance<LIDAR>().forEach { it.execute(location, context) }
+        for (location in path) {
+            if (context.isKnownObstacle(location)) {
+                path = aStar(location, task!!.location, context)
+                if (path.isEmpty()) {
+                    status = Status.IDLE
+                    return
+                }
+            }
         }
+
         if (task != null && isWithinOneCellOf(task!!.location)) {
             status = Status.WORKING
         }
