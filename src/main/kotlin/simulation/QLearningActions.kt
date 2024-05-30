@@ -12,14 +12,12 @@ fun templateAction(robot: Robot, availableTasks: List<Task>, context: Context): 
 }
 
 fun proximityAction(robot: Robot, availableTasks: List<Task>, context: Context): Task {
-    //println("Proximity action called")
     val robotLocation = robot.location
     val closestTask = availableTasks.minByOrNull { it.location.distanceTo(robotLocation, context) }
     return closestTask ?: availableTasks.random()
 }
 
 fun workloadAction(robot: Robot, availableTasks: List<Task>, context: Context): Task {
-    //println("Workload action called")
     val availableTasksWithWorkload = availableTasks.filter { task ->
         val distance = robot.location.distanceTo(task.location, context)
         val batteryLevel = robot.battery.level
@@ -49,7 +47,6 @@ fun workloadAction(robot: Robot, availableTasks: List<Task>, context: Context): 
 
 // Choose the task that can be completed the fastest based on working speed
 fun workingSpeedAction(robot: Robot, availableTasks: List<Task>, context: Context): Task {
-    //println("Working speed action called")
     val availableTasksWithWorkingSpeed = availableTasks.filter { task ->
         val workingSpeed = robot.devices.filter { it.supportedActions.contains(task.actionType) }
             .maxOfOrNull { device ->
@@ -68,7 +65,6 @@ fun workingSpeedAction(robot: Robot, availableTasks: List<Task>, context: Contex
 
 // Choose a task which has the most dependencies
 fun dependenciesAction(robot: Robot, availableTasks: List<Task>, context: Context): Task {
-    //println("Dependencies action called")
     val availableTasksWithDependencies = availableTasks.filter { task ->
         task.dependencies.isNotEmpty()
     }
@@ -77,7 +73,6 @@ fun dependenciesAction(robot: Robot, availableTasks: List<Task>, context: Contex
 
 // Choose a task with no robots working on it
 fun noRobotsAction(robot: Robot, availableTasks: List<Task>, context: Context): Task {
-    //println("No robots action called")
     val availableTasksWithNoRobots = availableTasks.filter { task ->
         task.assignedRobots.isEmpty()
     }
@@ -94,7 +89,6 @@ fun fewestRobotsAction(robot: Robot, availableTasks: List<Task>, context: Contex
 
 // Choose a task closest to the robot's home location
 fun homeLocationAction(robot: Robot, availableTasks: List<Task>, context: Context): Task {
-    //println("Home location action called")
     val homeLocation = robot.home
     val closestTask = availableTasks.minByOrNull { it.location.distanceTo(homeLocation, context) }
     return closestTask ?: availableTasks.random()
