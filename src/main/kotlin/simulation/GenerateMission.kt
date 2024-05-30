@@ -5,7 +5,6 @@ import adaptiveMRS.robot.*
 import adaptiveMRS.robot.Action
 import adaptiveMRS.utility.Location
 import java.util.*
-import kotlin.math.abs
 
 class MissionGenerator(
     private val mapSize: Pair<Int, Int>,
@@ -15,14 +14,13 @@ class MissionGenerator(
     private val rng = Random(System.currentTimeMillis())
 
     fun generate(): Triple<Context, Mission, List<Robot>> {
-        // Create a new context and mission setup for each call
         val context = createContext()
-        val robots = generateRobots(context)
-        val tasks = generateTasks(context)
-        val mission = Mission(rng.nextInt(), tasks)
+        addObstacles(context)
+        val reachableLocations = findReachableLocations(context)
 
-        // Populate valid obstacle locations considering new tasks and robots
-        addObstacles(context, robots, tasks)
+        val robots = generateRobots(context, reachableLocations)
+        val tasks = generateTasks(context, reachableLocations)
+        val mission = Mission(rng.nextInt(), tasks)
 
         return Triple(context, mission, robots)
     }
@@ -38,23 +36,70 @@ class MissionGenerator(
         return Context.create(rng.nextInt(), mapSize.first, mapSize.second, obstacles, knownLocations, mutableListOf())
     }
 
+    private fun addObstacles(context: Context) {
+        val totalObstacles = (mapSize.first * mapSize.second * 0.1).toInt()
+        val knownObstacles = totalObstacles / 2
 
-    private fun generateRobots(context: Context): List<Robot> {
+        repeat(knownObstacles) {
+            val x = rng.nextInt(1, mapSize.first - 1)
+            val y = rng.nextInt(1, mapSize.second - 1)
+            val location = Location(x, y)
+            if (context.knownLocations[location] == CellType.EMPTY) {
+                context.obstacles.add(Obstacle(mutableListOf(location)))
+                context.knownLocations[location] = CellType.OBSTACLE
+            }
+        }
+
+        repeat(totalObstacles - knownObstacles) {
+            val x = rng.nextInt(1, mapSize.first - 1)
+            val y = rng.nextInt(1, mapSize.second - 1)
+            val location = Location(x, y)
+            if (!context.knownLocations.containsKey(location)) {
+                context.obstacles.add(Obstacle(mutableListOf(location)))
+            }
+        }
+    }
+
+    private fun findReachableLocations(context: Context): MutableList<Location> {
+        val start = Location(0, 0)
+        val reachableLocations = mutableListOf<Location>()
+        val visited = mutableSetOf<Location>()
+        val queue = ArrayDeque<Location>()
+
+        if (!context.isObstacle(start)) {
+            queue.add(start)
+            visited.add(start)
+        }
+
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            if (!context.isObstacle(current)) {
+                reachableLocations.add(current)
+                getNeighbors(current).forEach { neighbor ->
+                    if (neighbor !in visited && !context.isObstacle(neighbor)) {
+                        queue.add(neighbor)
+                        visited.add(neighbor)
+                    }
+                }
+            }
+        }
+        return reachableLocations
+    }
+
+    private fun generateRobots(context: Context, availableLocations: MutableList<Location>): List<Robot> {
         val robots = mutableListOf<Robot>()
-        val availableLocations = context.knownLocations.filter { it.value == CellType.EMPTY }.keys.toMutableList()
         repeat(numRobots) {
             val index = rng.nextInt(availableLocations.size)
             val location = availableLocations.removeAt(index)
-            val battery = Battery(100.0)
+            val battery = Battery(100.0, 100.0)
             val devices = listOf(LIDAR(detectionRange = 5.0), Arm(workingSpeed = 1.0))
             robots.add(Robot(it, MovementCapability(1.0, 1.0), battery, devices, location, location))
         }
         return robots
     }
 
-    private fun generateTasks(context: Context): List<Task> {
+    private fun generateTasks(context: Context, availableLocations: MutableList<Location>): List<Task> {
         val tasks = mutableListOf<Task>()
-        val availableLocations = context.knownLocations.filter { it.value == CellType.EMPTY }.keys.toMutableList()
         repeat(numTasks) {
             val index = rng.nextInt(availableLocations.size)
             val location = availableLocations.removeAt(index)
@@ -65,43 +110,14 @@ class MissionGenerator(
         return tasks
     }
 
-    private fun addObstacles(context: Context, robots: List<Robot>, tasks: List<Task>) {
-        val unavailableLocations = robots.map { it.location } + tasks.map { it.location }
-        val validLocations = context.knownLocations.filterKeys {
-            it !in unavailableLocations && !isNearby(unavailableLocations, it)
-        }.keys.toMutableList()
-
-        val numObstacles = (validLocations.size * 0.1).toInt()
-        repeat(numObstacles) {
-            if (validLocations.isNotEmpty()) {
-                val index = rng.nextInt(validLocations.size)
-                val location = validLocations.removeAt(index)
-                context.obstacles.add(Obstacle(mutableListOf(location)))
-                context.knownLocations[location] = CellType.OBSTACLE
-            }
-        }
-    }
-
-    private fun isNearby(unavailableLocations: List<Location>, location: Location): Boolean {
-        return unavailableLocations.any {
-            abs(it.x - location.x) <= 1 && abs(it.y - location.y) <= 1
-        }
-    }
-
-    // Print map with tasks and obstacles
-    fun printMap(context: Context) {
-        for (y in 0 until context.height) {
-            for (x in 0 until context.width) {
-                val location = Location(x, y)
-                val cellType = context.knownLocations[location]
-                print(when (cellType) {
-                    CellType.EMPTY -> "."
-                    CellType.OBSTACLE -> "#"
-                    CellType.TASK -> "T"
-                    null -> "?"
-                })
-            }
-            println()
+    private fun getNeighbors(location: Location): List<Location> {
+        return listOf(
+            Location(location.x + 1, location.y),
+            Location(location.x - 1, location.y),
+            Location(location.x, location.y + 1),
+            Location(location.x, location.y - 1)
+        ).filter {
+            it.x in 0 until mapSize.first && it.y in 0 until mapSize.second
         }
     }
 }
