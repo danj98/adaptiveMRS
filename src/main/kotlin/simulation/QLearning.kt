@@ -119,9 +119,9 @@ fun updateQtable(qTable: MutableMap<StateAction, Double>, currentStateAction: St
 }
 
 
-// Trains the Q-learning algorithm for a given number of episodes
-fun trainQTable(episodes: Int, qTable: MutableMap<StateAction, Double>) {
 
+fun trainQTable(episodes: Int, qTable: MutableMap<StateAction, Double>, batch_size: Int = 10) {
+    var batch = mutableListOf<Pair<StateAction, Double>>()
 
     for (episode in 1..episodes) {
         val generator = MissionGenerator(Pair(100, 100), 50, 10)
@@ -129,14 +129,26 @@ fun trainQTable(episodes: Int, qTable: MutableMap<StateAction, Double>) {
         val env = Environment(mission, robots, context, "qLearning", qTable)
         val (iterations, stateActionsDuringMission) = env.run()
         val reward = -iterations.toDouble()
+
         stateActionsDuringMission.forEach { stateAction ->
-            updateQtable(qTable, stateAction, reward)
+            batch.add(Pair(stateAction, reward))
+            if (batch.size >= batch_size) {
+                batch.forEach { (sa, r) ->
+                    updateQtable(qTable, sa, r)
+                }
+                batch.clear()
+            }
         }
+
         if (episode % 100 == 0) {
             println("Episode $episode completed")
-            //println("Q-keys: ${qTable.keys}")
         }
         println("Finished episode $episode")
+    }
+
+    // Process any remaining batch items
+    batch.forEach { (sa, r) ->
+        updateQtable(qTable, sa, r)
     }
 }
 
