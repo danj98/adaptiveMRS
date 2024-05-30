@@ -127,13 +127,13 @@ fun aStar(from: Location, to: Location, context: Context): List<Location> {
 }
 
 fun distance(from: Location, to: Location): Int {
-    return if (from.x != to.x && from.y != to.y) 14 else 10  // Approximation of sqrt(2) * 10 for diagonals
+    return if (from.x != to.x && from.y != to.y) 14 else 10
 }
 
 fun getNeighbors(node: Node, context: Context): List<Node> {
     val directions = listOf(
-        Location(1, 0), Location(0, 1), Location(-1, 0), Location(0, -1),
-        Location(1, 1), Location(-1, 1), Location(1, -1), Location(-1, -1)
+        Location(1, 0), Location(0, 1), Location(-1, 0), Location(0, -1)
+        //Location(1, 1), Location(-1, 1), Location(1, -1), Location(-1, -1)
     )
     return directions.mapNotNull { dir ->
         val newLoc = Location(node.location.x + dir.x, node.location.y + dir.y)
