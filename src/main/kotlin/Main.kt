@@ -10,8 +10,7 @@ import kotlinx.serialization.*
 
 fun main() {
 
-    // Test the Q-learning algorithm
-    testScalability()
+    //testScalability()
 
     val numMissions = 10
     val trainingCycles = 10
