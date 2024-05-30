@@ -9,6 +9,10 @@ import java.util.*
 import kotlinx.serialization.*
 
 fun main() {
+
+    // Test the Q-learning algorithm
+    testScalability()
+
     val numMissions = 10
     val trainingCycles = 10
     val missionsPerTraining = 1000
@@ -64,9 +68,46 @@ fun runMissions(
             val env = Environment(missionCopy, robotsCopy, contextCopy, method, qTable)
             val (iterations, _) = env.run()
             averageScores[method]?.add(iterations)
-            //generator.printMap(contextCopy)
         }
     }
 }
+
+/*
+ * Test runtime of the Q-learning algorithm
+ */
+fun testScalability() {
+    val numMissions = 10
+    val qTable = mutableMapOf<StateAction, Double>()
+
+    val runtimes = mutableMapOf<Int, MutableList<Int>>()
+
+    var numRobots = 1
+    while (numRobots <= 100) {
+        for (i in 1..numMissions) {
+            val generator = MissionGenerator(Pair(100, 100), numRobots*5, numRobots)
+            val (context, mission, robots) = generator.generate()
+            val contextCopy = context.deepCopy()
+            val missionCopy = mission.deepCopy()
+            val robotsCopy = robots.map { it.copy() }
+
+            val env = Environment(missionCopy, robotsCopy, contextCopy, "qLearning", qTable)
+            val startTime = System.currentTimeMillis()
+            val (iterations, _) = env.run()
+            val endTime = System.currentTimeMillis()
+            val runtime = endTime - startTime
+
+            runtimes.getOrPut(numRobots) { mutableListOf() }.add(runtime.toInt())
+        }
+        println("Average time for $numRobots robots: ${runtimes[numRobots]?.average()} ms")
+        numRobots = if (numRobots == 1) numRobots + 4 else numRobots + 5
+    }
+
+    println("Scalability test results")
+    runtimes.forEach { (numRobots, times) ->
+        val avgTime = times.average()
+        println("Number of robots: $numRobots, Average time: $avgTime ms")
+    }
+}
+
 
 
