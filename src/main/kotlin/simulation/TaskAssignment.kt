@@ -7,12 +7,14 @@ import adaptiveMRS.robot.Robot
 import adaptiveMRS.robot.Status
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlinx.coroutines.*
 
 fun randomTaskAssignment(state: State): Task {
     val availableTasks = state.mission.tasks.filter { !it.isComplete }
     if (availableTasks.isEmpty()) throw IllegalStateException("No available tasks")
     return availableTasks.random()
 }
+
 
 fun marketBasedAssignment(state: State): Task {
     val robot = state.robots.find { it.beingAssigned }
@@ -34,13 +36,15 @@ fun marketBasedAssignment(state: State): Task {
         val urgencyScore = if (task.dependencies.isEmpty()) 1.0 else 2.0
         val allocationScore = task.assignedRobots.size.toDouble() / state.robots.size
 
-        val aggregatedScore = (distanceScore*3 + workloadScore*0.5 + urgencyScore*1 - allocationScore*4)
+        val aggregatedScore = (distanceScore*1 + workloadScore*1 + urgencyScore*2 - allocationScore*4)
 
         Pair(task, aggregatedScore)
     }
 
-    return weightedRandomSelection(taskBids)
+    //return weightedRandomSelection(taskBids)
+    return taskBids.maxByOrNull { it.second }!!.first
 }
+
 
 fun weightedRandomSelection(taskBids: List<Pair<Task, Double>>): Task {
     val totalScore = taskBids.sumOf { it.second }
