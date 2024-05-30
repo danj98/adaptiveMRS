@@ -52,12 +52,7 @@ class Context private constructor(
     }
 
     fun isObstacle(location: Location): Boolean {
-        obstacles.forEach { obstacle ->
-            if (isPointInsidePolygon(location, obstacle.shell)) {
-                return true
-            }
-        }
-        return false
+        return knownLocations[location] == CellType.OBSTACLE || obstacles.any { obstacle -> obstacle.shell.contains(location) }
     }
 
     private fun isPointInsidePolygon(point: Location, vertices: List<Location>): Boolean {
