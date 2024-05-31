@@ -1,9 +1,6 @@
 package adaptiveMRS.simulation
 
-import adaptiveMRS.mission.Context
-import adaptiveMRS.mission.Mission
 import adaptiveMRS.mission.Task
-import adaptiveMRS.robot.Robot
 import adaptiveMRS.robot.Status
 import adaptiveMRS.utility.Location
 import adaptiveMRS.utility.euclideanDistance

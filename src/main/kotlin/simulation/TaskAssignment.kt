@@ -1,13 +1,9 @@
 package adaptiveMRS.simulation
 
-import adaptiveMRS.mission.Context
 import adaptiveMRS.mission.Task
 import adaptiveMRS.robot.Arm
-import adaptiveMRS.robot.Robot
-import adaptiveMRS.robot.Status
 import kotlin.math.pow
 import kotlin.math.sqrt
-import kotlinx.coroutines.*
 
 fun randomTaskAssignment(state: State): Task {
     val availableTasks = state.mission.tasks.filter { !it.isComplete }

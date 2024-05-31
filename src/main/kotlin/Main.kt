@@ -1,12 +1,6 @@
 package adaptiveMRS
 
-import adaptiveMRS.mission.Context
-import adaptiveMRS.mission.Mission
-import adaptiveMRS.mission.Task
-import adaptiveMRS.robot.*
 import adaptiveMRS.simulation.*
-import java.util.*
-import kotlinx.serialization.*
 
 fun main() {
 

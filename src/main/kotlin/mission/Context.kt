@@ -1,8 +1,6 @@
 package adaptiveMRS.mission
 
 import adaptiveMRS.utility.Location
-import java.util.UUID
-import kotlin.math.pow
 
 class Context private constructor(
     val id: Int,
