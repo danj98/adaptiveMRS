@@ -1,11 +1,19 @@
 package adaptiveMRS
 
+import adaptiveMRS.mission.Context
+import adaptiveMRS.mission.Mission
+import adaptiveMRS.mission.Obstacle
+import adaptiveMRS.robot.*
 import adaptiveMRS.simulation.*
+import adaptiveMRS.utility.Location
+import adaptiveMRS.utility.createMissionFromJson
+import com.google.gson.Gson
 
-fun main() {
+fun main(args: Array<String>) {
 
     //testScalability()
 
+    /*
     val numMissions = 10
     val trainingCycles = 10
     val missionsPerTraining = 1000
@@ -40,6 +48,13 @@ fun main() {
             println("Method: ${method}, Average Score: $avgScore")
         }
     }
+     */
+    // Get mission from JSON in argument
+    //val (mission, robots, context) = parseMission(args[0])
+
+    val env = createMissionFromJson(json)
+    val (iterations, _) = env.run()
+    println("Mission completed in $iterations iterations")
 }
 
 fun runMissions(
@@ -102,5 +117,88 @@ fun testScalability() {
     }
 }
 
+/*
+Example JSON to turn into mission:
+*/
+val json = """{
+  "robots": [
+    {
+      "name": "hans",
+      "location": {
+        "lat": 51.504646690284794,
+        "lng": -0.092010498046875
+      },
+      "devices": [
+        {
+          "deviceType": "Arm",
+          "workingSpeed": 1
+        },
+        {
+          "deviceType": "LIDAR",
+          "detectionRange": 5
+        }
+      ]
+    },
+    {
+      "name": "nils",
+      "location": {
+        "lat": 51.50551929916671,
+        "lng": -0.10797500610351564
+      },
+      "devices": [
+        {
+          "deviceType": "Arm",
+          "workingSpeed": 1
+        },
+        {
+          "deviceType": "LIDAR",
+          "detectionRange": 5
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "name": "name",
+      "location": {
+        "lat": 51.51395957079169,
+        "lng": -0.09939193725585939
+      },
+      "workload": 5,
+      "dependency": "",
+      "actionType": "Work"
+    },
+    {
+      "name": "task2",
+      "location": {
+        "lat": 51.5090451724131,
+        "lng": -0.07450103759765626
+      },
+      "workload": 10,
+      "dependency": "name",
+      "actionType": "Work"
+    }
+  ],
+  "obstacles": [
+    [
+      {
+        "lat": 51.501779440106596,
+        "lng": -0.08771896362304689
+      },
+      {
+        "lat": 51.49739807006878,
+        "lng": -0.09046554565429689
+      },
+      {
+        "lat": 51.50071085210534,
+        "lng": -0.10162353515625
+      },
+      {
+        "lat": 51.50530560274019,
+        "lng": -0.09115219116210939
+      }
+    ]
+  ]
+}"""
 
 
